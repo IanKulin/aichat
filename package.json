@@ -3,14 +3,29 @@
   "version": "0.0.1",
   "description": "Chat interface to LLMs",
   "type": "module",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --experimental-strip-types server.ts",
+    "dev": "node --experimental-strip-types --watch server.ts",
+    "test": "node --test --experimental-strip-types test/*.ts",
+    "test:watch": "node --test --experimental-strip-types --watch test/*.ts",
+    "lint": "npx eslint *.ts lib/*.ts test/*.ts --fix --max-warnings 0",
+    "format": "npx prettier *.ts lib/*.ts test/*.ts --write"
   },
   "author": "IanKulin",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.0.3",
+    "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "supertest": "^7.1.1"
   }
 }
