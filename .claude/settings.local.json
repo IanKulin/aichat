@@ -13,7 +13,11 @@
       "Bash(find:*)",
       "Bash(npm test)",
       "Bash(git checkout:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "WebFetch(domain:ai-sdk.dev)",
+      "Bash(npm run format:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

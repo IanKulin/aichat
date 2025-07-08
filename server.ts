@@ -2,7 +2,12 @@ import dotenv from "dotenv";
 import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { sendMessage, validateApiKey } from "./lib/openai-client.js";
+import {
+  sendMessage,
+  getAvailableProviders,
+  validateAllProviders,
+  type SupportedProvider,
+} from "./lib/ai-client.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,26 +25,40 @@ interface ChatMessage {
 
 interface ChatRequest {
   messages: ChatMessage[];
+  provider?: string;
+  model?: string;
 }
 
 // Middleware
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
 
-// Validate API key on startup
-const apiKeyValidation = validateApiKey();
-if (!apiKeyValidation.valid) {
-  console.error("⚠️  API Key Issue:", apiKeyValidation.message);
-  console.error("   Please set OPENAI_API_KEY environment variable");
+// Validate API keys on startup
+const providerValidations = validateAllProviders();
+const availableProviders = getAvailableProviders();
+
+console.log("🔑 API Key Validation Results:");
+Object.entries(providerValidations).forEach(([provider, validation]) => {
+  const status = validation.valid ? "✅" : "❌";
+  console.log(`   ${status} ${provider}: ${validation.message}`);
+});
+
+if (availableProviders.length === 0) {
+  console.error("⚠️  No valid API keys found!");
+  console.error(
+    "   Please set at least one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, DEEPSEEK_API_KEY"
+  );
   console.error("   Example: export OPENAI_API_KEY=sk-your-key-here");
 } else {
-  console.log("✅ OpenAI API key validated");
+  console.log(
+    `✅ ${availableProviders.length} provider(s) available: ${availableProviders.join(", ")}`
+  );
 }
 
-// Chat endpoint with OpenAI integration
+// Chat endpoint with multi-provider support
 app.post("/api/chat", async (req, res) => {
   try {
-    const { messages }: ChatRequest = req.body;
+    const { messages, provider, model }: ChatRequest = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -50,16 +69,33 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Last message must have content" });
     }
 
-    console.log("Received conversation with", messages.length, "messages");
+    // Validate provider if specified
+    const selectedProvider = provider || "openai";
+    if (!availableProviders.includes(selectedProvider as SupportedProvider)) {
+      return res.status(400).json({
+        error: "Invalid provider",
+        message: `Provider '${selectedProvider}' is not available. Available providers: ${availableProviders.join(", ")}`,
+      });
+    }
 
-    // Send full conversation to OpenAI
-    const aiResponse = await sendMessage(messages);
+    console.log(
+      `Received conversation with ${messages.length} messages for provider: ${selectedProvider}`
+    );
 
-    console.log("OpenAI response length:", aiResponse.length);
+    // Send full conversation to selected provider
+    const aiResponse = await sendMessage(
+      messages,
+      selectedProvider as SupportedProvider,
+      model
+    );
+
+    console.log(`${selectedProvider} response length:`, aiResponse.length);
 
     res.json({
       response: aiResponse,
       timestamp: new Date().toISOString(),
+      provider: selectedProvider,
+      model: model || "default",
     });
   } catch (error) {
     console.error("Error in /api/chat:", (error as Error).message);
@@ -68,13 +104,16 @@ app.post("/api/chat", async (req, res) => {
     let clientError =
       "Sorry, I'm having trouble processing your request right now.";
 
-    if ((error as Error).message.includes("OPENAI_API_KEY")) {
+    if ((error as Error).message.includes("API key")) {
       clientError = "Service configuration error. Please try again later.";
     } else if ((error as Error).message.includes("Network error")) {
       clientError =
         "Network error. Please check your connection and try again.";
-    } else if ((error as Error).message.includes("OpenAI API error")) {
+    } else if ((error as Error).message.includes("API error")) {
       clientError = "AI service is temporarily unavailable. Please try again.";
+    } else if ((error as Error).message.includes("Model error")) {
+      clientError =
+        "Selected model is not available. Please try a different model.";
     }
 
     res.status(500).json({
@@ -86,13 +125,15 @@ app.post("/api/chat", async (req, res) => {
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  const apiKeyStatus = validateApiKey();
+  const providerValidations = validateAllProviders();
+  const availableProviders = getAvailableProviders();
 
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
-    openai_configured: apiKeyStatus.valid,
+    providers: providerValidations,
+    available_providers: availableProviders,
   });
 });
 

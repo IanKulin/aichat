@@ -19,8 +19,8 @@ This is a Node.js/Express web application that provides a chat interface for int
 # Install dependencies
 npm install
 
-# Start the server
-node server.js
+# Start the server (node's strip-types mode for running ts natively)
+npm start
 
 # Lint JavaScript files
 npm run lint
@@ -72,3 +72,10 @@ The frontend is a single-page application with:
 - Error messages sanitized to prevent exposure of internal details
 - CORS not explicitly configured (defaults to same-origin)
 - No authentication system - this is a basic demo application
+
+## Tool use
+
+- use the `temp` directory to store logs
+- use the `temp` directory to write any disposable node or bash scripts you need
+- assume a MacOS environment for CLI tools
+- Playwright MCP is available for screenshots of the UI

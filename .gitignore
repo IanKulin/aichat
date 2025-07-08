@@ -2,3 +2,5 @@
 .env
 tree
 node_modules
+temp
+FEATURE-*

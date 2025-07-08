@@ -93,7 +93,7 @@ export function validateApiKey(): ApiKeyValidation {
   }
 
   if (!apiKey.startsWith("sk-")) {
-    return { valid: false, message: "OPENAI_API_KEY should start with \"sk-\"" };
+    return { valid: false, message: 'OPENAI_API_KEY should start with "sk-"' };
   }
 
   if (apiKey.length < 20) {

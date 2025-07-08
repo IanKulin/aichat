@@ -23,8 +23,7 @@ describe("Chat API", () => {
 
 describe("Health Check API", () => {
   it("should return health status", async () => {
-    const response = await request(app)
-      .get("/api/health");
+    const response = await request(app).get("/api/health");
     assert.strictEqual(response.status, 200);
     assert.ok(response.body.timestamp);
     assert.strictEqual(response.body.version, "1.0.0");

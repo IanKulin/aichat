@@ -9,25 +9,54 @@ class MockResponse extends Response {
   statusText: string;
   jsonData: unknown;
 
-  constructor(ok: boolean, status: number, statusText: string, jsonData: unknown) {
+  constructor(
+    ok: boolean,
+    status: number,
+    statusText: string,
+    jsonData: unknown
+  ) {
     super(null, { status, statusText });
     this.ok = ok;
     this.status = status;
     this.statusText = statusText;
     this.jsonData = jsonData;
   }
-  async json() { return this.jsonData; }
-  get headers() { return new Headers(); }
-  get redirected() { return false; }
-  get type() { return "basic" as const; }
-  get url() { return ""; }
-  clone() { return this; }
-  get body() { return null; }
-  get bodyUsed() { return false; }
-  arrayBuffer() { return Promise.resolve(new ArrayBuffer(0)); }
-  blob() { return Promise.resolve(new Blob()); }
-  formData() { return Promise.resolve(new FormData()); }
-  text() { return Promise.resolve(""); }
+  async json() {
+    return this.jsonData;
+  }
+  get headers() {
+    return new Headers();
+  }
+  get redirected() {
+    return false;
+  }
+  get type() {
+    return "basic" as const;
+  }
+  get url() {
+    return "";
+  }
+  clone() {
+    return this;
+  }
+  get body() {
+    return null;
+  }
+  get bodyUsed() {
+    return false;
+  }
+  arrayBuffer() {
+    return Promise.resolve(new ArrayBuffer(0));
+  }
+  blob() {
+    return Promise.resolve(new Blob());
+  }
+  formData() {
+    return Promise.resolve(new FormData());
+  }
+  text() {
+    return Promise.resolve("");
+  }
 }
 
 describe("API Key Validation", () => {
@@ -84,9 +113,12 @@ describe("OpenAI Client", () => {
 
   it("should handle API response errors", async () => {
     process.env.OPENAI_API_KEY = "sk-test12345678901234567890";
-    global.fetch = () => Promise.resolve(
-      new MockResponse(false, 401, "Unauthorized", { error: { message: "Invalid API key" } })
-    );
+    global.fetch = () =>
+      Promise.resolve(
+        new MockResponse(false, 401, "Unauthorized", {
+          error: { message: "Invalid API key" },
+        })
+      );
     await assert.rejects(
       () => sendMessage([{ role: "user", content: "test" }]),
       { message: /OpenAI API error: 401 Unauthorized/ }
@@ -95,9 +127,12 @@ describe("OpenAI Client", () => {
 
   it("should parse successful responses", async () => {
     process.env.OPENAI_API_KEY = "sk-test12345678901234567890";
-    global.fetch = () => Promise.resolve(
-      new MockResponse(true, 200, "OK", { choices: [{ message: { content: "Test response" } }] })
-    );
+    global.fetch = () =>
+      Promise.resolve(
+        new MockResponse(true, 200, "OK", {
+          choices: [{ message: { content: "Test response" } }],
+        })
+      );
     const result = await sendMessage([{ role: "user", content: "test" }]);
     assert.strictEqual(result, "Test response");
   });
