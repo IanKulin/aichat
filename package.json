@@ -6,12 +6,11 @@
   "main": "server.ts",
   "scripts": {
     "start": "node --experimental-strip-types server.ts",
-    "dev": "node --experimental-strip-types --watch server.ts",
-    "test": "echo 'No tests available'",
-    "test:watch": "echo 'No tests available'",
-    "lint": "npx eslint *.ts lib/*.ts --fix --max-warnings 0",
-    "format": "npx prettier *.ts lib/*.ts --write",
-    "typecheck": "npx tsc --noEmit"
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "lint": "npx eslint *.ts lib/*.ts scripts/*.ts --fix --max-warnings 0",
+    "format": "npx prettier *.ts lib/*.ts scripts/*.ts --write",
+    "typecheck": "npx tsc --noEmit",
+    "sanity-check": "node --experimental-strip-types scripts/sanity-check.ts"
   },
   "author": "IanKulin",
   "license": "MIT",

@@ -19,6 +19,7 @@ This is a Node.js/Express web application that provides a chat interface for int
 - `npm start` - Start the server (node's strip-types mode for running ts natively)
 - `npm run lint` - Lint TypeScript/JavaScript files
 - `npm run format` - Prettier formatting
+- `npm test` - Tests using Node built in test runner
 
 ## Environment Setup
 

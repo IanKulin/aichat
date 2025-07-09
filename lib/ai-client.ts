@@ -20,7 +20,7 @@ interface ProviderConfig {
 }
 
 // Provider configurations
-const providerConfigs: Record<SupportedProvider, ProviderConfig> = {
+export const providerConfigs: Record<SupportedProvider, ProviderConfig> = {
   openai: {
     name: "OpenAI",
     models: ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
@@ -64,36 +64,36 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
 
   // Initialize provider dynamically to handle environment variable loading
   switch (provider) {
-  case "openai":
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error(
-        `Provider ${provider} is not configured (API key missing)`
-      );
-    }
-    return openai(selectedModel);
-  case "anthropic":
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error(
-        `Provider ${provider} is not configured (API key missing)`
-      );
-    }
-    return anthropic(selectedModel);
-  case "google":
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      throw new Error(
-        `Provider ${provider} is not configured (API key missing)`
-      );
-    }
-    return google(selectedModel);
-  case "deepseek":
-    if (!process.env.DEEPSEEK_API_KEY) {
-      throw new Error(
-        `Provider ${provider} is not configured (API key missing)`
-      );
-    }
-    return deepseek(selectedModel);
-  default:
-    throw new Error(`Unknown provider: ${provider}`);
+    case "openai":
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error(
+          `Provider ${provider} is not configured (API key missing)`
+        );
+      }
+      return openai(selectedModel);
+    case "anthropic":
+      if (!process.env.ANTHROPIC_API_KEY) {
+        throw new Error(
+          `Provider ${provider} is not configured (API key missing)`
+        );
+      }
+      return anthropic(selectedModel);
+    case "google":
+      if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        throw new Error(
+          `Provider ${provider} is not configured (API key missing)`
+        );
+      }
+      return google(selectedModel);
+    case "deepseek":
+      if (!process.env.DEEPSEEK_API_KEY) {
+        throw new Error(
+          `Provider ${provider} is not configured (API key missing)`
+        );
+      }
+      return deepseek(selectedModel);
+    default:
+      throw new Error(`Unknown provider: ${provider}`);
   }
 }
 
@@ -120,7 +120,7 @@ export function validateApiKey(
 
   // Provider-specific validation
   if (provider === "openai" && !apiKey.startsWith("sk-")) {
-    return { valid: false, message: "OpenAI API key should start with \"sk-\"" };
+    return { valid: false, message: 'OpenAI API key should start with "sk-"' };
   }
 
   if (apiKey.length < 10) {
@@ -225,7 +225,7 @@ export async function streamMessage(
 export function validateAllProviders(): Record<
   SupportedProvider,
   ApiKeyValidation
-  > {
+> {
   const results = {} as Record<SupportedProvider, ApiKeyValidation>;
 
   (
