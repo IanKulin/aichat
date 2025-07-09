@@ -17,7 +17,10 @@
       "WebFetch(domain:ai-sdk.dev)",
       "Bash(npm run format:*)",
       "Bash(curl:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(NODE_OPTIONS='--disable-warning=ExperimentalWarning' npm test)",
+      "Bash(npm run test:providers:*)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }
