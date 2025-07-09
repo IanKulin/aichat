@@ -184,6 +184,50 @@
         }
       }
 
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+
+      .new-chat-button {
+        background-color: #007aff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      .new-chat-button:hover {
+        background-color: #0056b3;
+      }
+
+      .title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        transition: color 0.2s;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .header {
+          background: #2d2d2d;
+          border-bottom: 1px solid #404040;
+        }
+
+        .title {
+          color: #ffffff;
+        }
+      }
+
       /* Responsive design */
       @media (max-width: 768px) {
         .message {
@@ -197,10 +241,28 @@
         .chat-container {
           padding: 16px;
         }
+
+        .header {
+          padding: 12px 16px;
+        }
+
+        .title {
+          font-size: 16px;
+        }
+
+        .new-chat-button {
+          padding: 6px 12px;
+          font-size: 13px;
+        }
       }
     </style>
   </head>
   <body>
+    <div class="header">
+      <button class="new-chat-button" id="newChatButton">New Chat</button>
+      <div class="title">Chat Interface</div>
+      <div></div>
+    </div>
     <div class="chat-container" id="chatContainer">
       <div class="message system">
         Welcome! Start a conversation by typing a message below.
@@ -339,6 +401,20 @@
           messageInput.focus();
         }
       }
+
+      function clearConversation() {
+        // Reset conversation history
+        conversationHistory = [];
+        
+        // Clear chat display
+        chatContainer.innerHTML = '<div class="message system">Welcome! Start a conversation by typing a message below.</div>';
+        
+        // Focus input
+        messageInput.focus();
+      }
+
+      // New Chat button handler
+      document.getElementById('newChatButton').addEventListener('click', clearConversation);
 
       // Focus input on page load
       messageInput.focus();

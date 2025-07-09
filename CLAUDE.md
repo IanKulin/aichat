@@ -19,7 +19,8 @@ This is a Node.js/Express web application that provides a chat interface for int
 - `npm start` - Start the server (node's strip-types mode for running ts natively)
 - `npm run lint` - Lint TypeScript/JavaScript files
 - `npm run format` - Prettier formatting
-- `npm test` - Tests using Node built in test runner
+- `npm test` - Tests using Node built in test runner without using API tokens
+- `npm run sanity-check` - calls each of the providers
 
 ## Environment Setup
 
@@ -38,7 +39,7 @@ Required environment variables:
 
 ## Frontend Architecture
 
-The frontend is a single-page application with:
+The frontend is a single html page with:
 - Conversation history stored in memory (`conversationHistory` array)
 - Dark mode support via CSS media queries
 - Responsive design for mobile devices
@@ -61,7 +62,7 @@ The frontend is a single-page application with:
 - API key validation on startup
 - Error messages sanitized to prevent exposure of internal details
 - CORS not explicitly configured (defaults to same-origin)
-- No authentication system - this is a basic demo application
+- No authentication system - this is a basic application intended for self-hosting on local networks
 
 ## Tool use
 

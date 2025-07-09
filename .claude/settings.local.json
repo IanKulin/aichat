@@ -23,7 +23,12 @@
       "Bash(npm run:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_fill",
+      "mcp__playwright__playwright_click",
+      "mcp__playwright__playwright_close"
     ],
     "deny": []
   }
