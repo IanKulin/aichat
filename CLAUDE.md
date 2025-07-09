@@ -4,37 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Node.js/Express web application that provides a chat interface for interacting with OpenAI's GPT models. It's a server-side rendered application with a single-page frontend that makes API calls to OpenAI.
+This is a Node.js/Express web application that provides a chat interface for interacting with multiple AI providers (OpenAI, Anthropic, Google, DeepSeek). It's a server-side rendered application with a single-page frontend that makes API calls to various AI services.
 
 ## Architecture
 
-- **Backend**: Express.js server (`server.js`) that handles API routes and serves static files
+- **Backend**: Express.js server (`server.ts`) that handles API routes and serves static files
 - **Frontend**: Single HTML file (`public/index.html`) with embedded CSS and JavaScript
-- **API Client**: OpenAI integration module (`lib/openai-client.js`) that handles API communication
+- **API Client**: AI SDK integration module (`lib/ai-client.ts`) that handles multi-provider API communication using Vercel AI SDK
 - **Configuration**: Environment variables managed via `.env` file and dotenv package
 
 ## Development Commands
 
-```bash
-# Install dependencies
-npm install
-
-# Start the server (node's strip-types mode for running ts natively)
-npm start
-
-# Lint JavaScript files
-npm run lint
-
-# Format JavaScript files
-npm run format
-```
-
-The server runs on port 3000 by default (configurable via PORT environment variable).
+- `npm install` - Install dependencies
+- `npm start` - Start the server (node's strip-types mode for running ts natively)
+- `npm run lint` - Lint TypeScript/JavaScript files
+- `npm run format` - Prettier formatting
 
 ## Environment Setup
 
 Required environment variables:
-- `OPENAI_API_KEY`: Your OpenAI API key (must start with 'sk-')
+- `OPENAI_API_KEY`
+- `GOOGLE_GENERATIVE_AI_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `DEEPSEEK_API_KEY`
 - `PORT`: Optional, defaults to 3000
 
 ## API Endpoints
@@ -54,16 +46,13 @@ The frontend is a single-page application with:
 
 ## Key Features
 
-- Full conversation context is maintained and sent to OpenAI
-- Error handling with user-friendly messages
-- Dark mode support (automatic based on system preference)
-- API key validation on startup
-- Responsive design for mobile and desktop
+- Full conversation context is maintained and sent to providers
+- Uses the Vercel AI SDK to abstract calls to multiple providers
 
 ## Code Structure
 
-- `server.js`: Main Express server with middleware, routes, and error handling
-- `lib/openai-client.js`: OpenAI API client with message sending and API key validation
+- `server.ts`: Main Express server with middleware, routes, and error handling
+- `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
 - `public/index.html`: Complete frontend with HTML, CSS, and JavaScript
 
 ## Security Considerations

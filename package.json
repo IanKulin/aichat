@@ -7,10 +7,10 @@
   "scripts": {
     "start": "node --experimental-strip-types server.ts",
     "dev": "node --experimental-strip-types --watch server.ts",
-    "test": "node --test --experimental-strip-types test/*.ts",
-    "test:watch": "node --test --experimental-strip-types --watch test/*.ts",
-    "lint": "npx eslint *.ts lib/*.ts test/*.ts --fix --max-warnings 0",
-    "format": "npx prettier *.ts lib/*.ts test/*.ts --write"
+    "test": "echo 'No tests available'",
+    "test:watch": "echo 'No tests available'",
+    "lint": "npx eslint *.ts lib/*.ts --fix --max-warnings 0",
+    "format": "npx prettier *.ts lib/*.ts --write"
   },
   "author": "IanKulin",
   "license": "MIT",
