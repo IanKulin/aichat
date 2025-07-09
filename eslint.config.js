@@ -1,5 +1,6 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
+import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
@@ -24,9 +25,6 @@ export default [
       "prefer-const": "error",
       "no-var": "error",
       eqeqeq: "error",
-      semi: ["error", "always"],
-      quotes: ["error", "double"],
-      indent: ["error", 2],
     },
   },
   {
@@ -57,9 +55,7 @@ export default [
       "prefer-const": "error",
       "no-var": "error",
       eqeqeq: "error",
-      semi: ["error", "always"],
-      quotes: ["error", "double"],
-      indent: ["error", 2],
     },
   },
+  eslintConfigPrettier,
 ];
