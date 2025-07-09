@@ -30,19 +30,19 @@ export const providerConfigs: Record<SupportedProvider, ProviderConfig> = {
     name: "Anthropic",
     models: [
       "claude-3-haiku-20240307",
-      "claude-3-sonnet-20240229",
-      "claude-3-opus-20240229",
+      "claude-3-7-sonnet-20250219",
+      "claude-sonnet-4-20250514"
     ],
     defaultModel: "claude-3-haiku-20240307",
   },
   google: {
     name: "Google",
-    models: ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro"],
-    defaultModel: "gemini-2.0-flash-exp",
+    models: ["gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-flash", "gemini-2.5-pro"],
+    defaultModel: "gemini-2.5-flash",
   },
   deepseek: {
     name: "DeepSeek",
-    models: ["deepseek-chat", "deepseek-coder"],
+    models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
     defaultModel: "deepseek-chat",
   },
 };

@@ -6,6 +6,8 @@ import {
   sendMessage,
   getAvailableProviders,
   validateAllProviders,
+  getProviderConfig,
+  providerConfigs,
   type SupportedProvider,
 } from "./lib/ai-client.ts";
 
@@ -82,20 +84,25 @@ app.post("/api/chat", async (req, res) => {
       `Received conversation with ${messages.length} messages for provider: ${selectedProvider}`
     );
 
+    // Get the actual model that will be used
+    const providerConfig = getProviderConfig(selectedProvider as SupportedProvider);
+    const actualModel = model || providerConfig.defaultModel;
+
     // Send full conversation to selected provider
     const aiResponse = await sendMessage(
       messages,
       selectedProvider as SupportedProvider,
-      model
+      actualModel
     );
 
-    console.log(`${selectedProvider} response length:`, aiResponse.length);
+    console.log(`${selectedProvider} (${actualModel}) response length:`, aiResponse.length);
 
     res.json({
       response: aiResponse,
       timestamp: new Date().toISOString(),
       provider: selectedProvider,
-      model: model || "default",
+      providerName: providerConfig.name,
+      model: actualModel,
     });
   } catch (error) {
     console.error("Error in /api/chat:", (error as Error).message);
@@ -121,6 +128,23 @@ app.post("/api/chat", async (req, res) => {
       message: clientError,
     });
   }
+});
+
+// Providers endpoint - returns available providers and their models
+app.get("/api/providers", (req, res) => {
+  const availableProviders = getAvailableProviders();
+  
+  const providersData = availableProviders.map(provider => ({
+    id: provider,
+    name: providerConfigs[provider].name,
+    models: providerConfigs[provider].models,
+    defaultModel: providerConfigs[provider].defaultModel,
+  }));
+
+  res.json({
+    providers: providersData,
+    default: availableProviders.length > 0 ? availableProviders[0] : null,
+  });
 });
 
 // Health check endpoint

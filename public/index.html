@@ -63,6 +63,15 @@
         transition: background-color 0.2s, color 0.2s;
       }
 
+      .provider-info {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+        opacity: 0.8;
+        font-style: italic;
+        transition: color 0.2s;
+      }
+
       .input-container {
         padding: 16px 20px;
         background: white;
@@ -194,6 +203,46 @@
         transition: background-color 0.2s, border-color 0.2s;
       }
 
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .provider-controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      .provider-select,
+      .model-select {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+        transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+      }
+
+      .provider-select:focus,
+      .model-select:focus {
+        outline: none;
+        border-color: #007aff;
+      }
+
+      .provider-select:hover,
+      .model-select:hover {
+        border-color: #999;
+      }
+
+
       .new-chat-button {
         background-color: #007aff;
         color: white;
@@ -226,6 +275,23 @@
         .title {
           color: #ffffff;
         }
+
+        .provider-select,
+        .model-select {
+          background: #404040;
+          border: 1px solid #555;
+          color: #ffffff;
+        }
+
+        .provider-select:hover,
+        .model-select:hover {
+          border-color: #777;
+        }
+
+
+        .provider-info {
+          color: #aaa;
+        }
       }
 
       /* Responsive design */
@@ -246,6 +312,21 @@
           padding: 12px 16px;
         }
 
+        .header-left {
+          gap: 8px;
+        }
+
+        .provider-controls {
+          gap: 6px;
+        }
+
+        .provider-select,
+        .model-select {
+          padding: 5px 8px;
+          font-size: 12px;
+          min-width: 80px;
+        }
+
         .title {
           font-size: 16px;
         }
@@ -254,14 +335,26 @@
           padding: 6px 12px;
           font-size: 13px;
         }
+
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <button class="new-chat-button" id="newChatButton">New Chat</button>
+      <div class="header-left">
+        <button class="new-chat-button" id="newChatButton">New Chat</button>
+      </div>
       <div class="title">Chat Interface</div>
-      <div></div>
+      <div class="header-right">
+        <div class="provider-controls">
+          <select class="provider-select" id="providerSelect">
+            <option value="">Loading...</option>
+          </select>
+          <select class="model-select" id="modelSelect">
+            <option value="">Select model...</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="chat-container" id="chatContainer">
       <div class="message system">
@@ -286,9 +379,16 @@
       const messageInput = document.getElementById("messageInput");
       const sendButton = document.getElementById("sendButton");
       const loadingIndicator = document.getElementById("loadingIndicator");
+      const providerSelect = document.getElementById("providerSelect");
+      const modelSelect = document.getElementById("modelSelect");
 
       // Conversation history storage
       let conversationHistory = [];
+      
+      // Provider/model state
+      let availableProviders = [];
+      let selectedProvider = null;
+      let selectedModel = null;
 
       // Auto-resize textarea
       messageInput.addEventListener("input", function () {
@@ -307,10 +407,24 @@
       // Send button click handler
       sendButton.addEventListener("click", sendMessage);
 
-      function addMessage(content, type = "user") {
+      function addMessage(content, type = "user", metadata = null) {
         const messageDiv = document.createElement("div");
         messageDiv.className = `message ${type}`;
-        messageDiv.textContent = content;
+        
+        if (type === "assistant" && metadata) {
+          // Create content with provider info
+          const contentDiv = document.createElement("div");
+          contentDiv.textContent = content;
+          
+          const providerInfo = document.createElement("div");
+          providerInfo.className = "provider-info";
+          providerInfo.textContent = `${metadata.providerName} • ${metadata.model}`;
+          
+          messageDiv.appendChild(contentDiv);
+          messageDiv.appendChild(providerInfo);
+        } else {
+          messageDiv.textContent = content;
+        }
 
         chatContainer.appendChild(messageDiv);
         scrollToBottom();
@@ -368,7 +482,11 @@
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ messages: conversationHistory }),
+            body: JSON.stringify({ 
+              messages: conversationHistory,
+              provider: selectedProvider,
+              model: selectedModel
+            }),
           });
 
           if (!response.ok) {
@@ -385,8 +503,11 @@
               content: data.response,
             });
 
-            // Add to display
-            addMessage(data.response, "assistant");
+            // Add to display with provider metadata
+            addMessage(data.response, "assistant", {
+              providerName: data.providerName,
+              model: data.model
+            });
           } else {
             throw new Error("No response received from server");
           }
@@ -415,6 +536,109 @@
 
       // New Chat button handler
       document.getElementById('newChatButton').addEventListener('click', clearConversation);
+
+      // Provider/model selection functions
+      async function loadProviders() {
+        try {
+          const response = await fetch("/api/providers");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          availableProviders = data.providers || [];
+          
+          // Populate provider dropdown
+          providerSelect.innerHTML = "";
+          if (availableProviders.length === 0) {
+            providerSelect.innerHTML = '<option value="">No providers available</option>';
+            return;
+          }
+          
+          availableProviders.forEach(provider => {
+            const option = document.createElement("option");
+            option.value = provider.id;
+            option.textContent = provider.name;
+            providerSelect.appendChild(option);
+          });
+          
+          // Set default provider
+          if (data.default && availableProviders.length > 0) {
+            selectedProvider = data.default;
+            providerSelect.value = selectedProvider;
+            loadModelsForProvider(selectedProvider);
+          }
+          
+        } catch (error) {
+          console.error("Error loading providers:", error);
+          providerSelect.innerHTML = '<option value="">Error loading providers</option>';
+        }
+      }
+      
+      function loadModelsForProvider(providerId) {
+        const provider = availableProviders.find(p => p.id === providerId);
+        if (!provider) return;
+        
+        // Clear and populate model dropdown
+        modelSelect.innerHTML = "";
+        provider.models.forEach(model => {
+          const option = document.createElement("option");
+          option.value = model;
+          option.textContent = model;
+          modelSelect.appendChild(option);
+        });
+        
+        // Set default model
+        selectedModel = provider.defaultModel;
+        modelSelect.value = selectedModel;
+        
+      }
+      
+      
+      // Provider selection change handler
+      providerSelect.addEventListener("change", function() {
+        selectedProvider = this.value;
+        if (selectedProvider) {
+          loadModelsForProvider(selectedProvider);
+          saveUserSelection();
+        }
+      });
+      
+      // Model selection change handler
+      modelSelect.addEventListener("change", function() {
+        selectedModel = this.value;
+        saveUserSelection();
+      });
+      
+      // LocalStorage persistence
+      function saveUserSelection() {
+        if (selectedProvider && selectedModel) {
+          localStorage.setItem("preferredProvider", selectedProvider);
+          localStorage.setItem("preferredModel", selectedModel);
+        }
+      }
+      
+      function loadUserSelection() {
+        const savedProvider = localStorage.getItem("preferredProvider");
+        const savedModel = localStorage.getItem("preferredModel");
+        
+        if (savedProvider && savedModel) {
+          // Check if saved provider is still available
+          const provider = availableProviders.find(p => p.id === savedProvider);
+          if (provider && provider.models.includes(savedModel)) {
+            selectedProvider = savedProvider;
+            selectedModel = savedModel;
+            providerSelect.value = savedProvider;
+            loadModelsForProvider(savedProvider);
+            modelSelect.value = savedModel;
+              }
+        }
+      }
+
+      // Initialize providers on page load
+      loadProviders().then(() => {
+        loadUserSelection();
+      });
 
       // Focus input on page load
       messageInput.focus();

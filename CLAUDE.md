@@ -70,3 +70,4 @@ The frontend is a single html page with:
 - use the `temp` directory to write any disposable node or bash scripts you need
 - assume a MacOS environment for CLI tools
 - Playwright MCP is available for screenshots of the UI
+- If you start a background process for testing, kill it before handing back to the user
