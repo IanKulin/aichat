@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { logger } from "./lib/logger.ts";
 import {
   sendMessage,
   getAvailableProviders,
@@ -39,21 +40,21 @@ app.use(express.static(join(__dirname, "public")));
 const providerValidations = validateAllProviders();
 const availableProviders = getAvailableProviders();
 
-console.log("🔑 API Key Validation Results:");
 Object.entries(providerValidations).forEach(([provider, validation]) => {
-  const status = validation.valid ? "✅" : "❌";
-  console.log(`   ${status} ${provider}: ${validation.message}`);
+  if (!validation.valid) {
+    logger.warn(`${provider}: ${validation.message}`)
+  }
 });
 
 if (availableProviders.length === 0) {
-  console.error("⚠️  No valid API keys found!");
-  console.error(
+  logger.warn(" No valid API keys found");
+  logger.warn(
     "   Please set at least one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, DEEPSEEK_API_KEY"
   );
-  console.error("   Example: export OPENAI_API_KEY=sk-your-key-here");
+  logger.warn("   Example: export OPENAI_API_KEY=sk-your-key-here");
 } else {
-  console.log(
-    `✅ ${availableProviders.length} provider(s) available: ${availableProviders.join(", ")}`
+  logger.info(
+    `Valid providers: ${availableProviders.join(", ")}`
   );
 }
 
@@ -80,7 +81,7 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    console.log(
+    logger.debug(
       `Received conversation with ${messages.length} messages for provider: ${selectedProvider}`
     );
 
@@ -95,7 +96,7 @@ app.post("/api/chat", async (req, res) => {
       actualModel
     );
 
-    console.log(`${selectedProvider} (${actualModel}) response length:`, aiResponse.length);
+    logger.debug(`${selectedProvider} (${actualModel}) response length:`, aiResponse.length);
 
     res.json({
       response: aiResponse,
@@ -105,7 +106,7 @@ app.post("/api/chat", async (req, res) => {
       model: actualModel,
     });
   } catch (error) {
-    console.error("Error in /api/chat:", (error as Error).message);
+    logger.error("Error in /api/chat:", (error as Error).message);
 
     // Don't expose internal error details to client
     let clientError =
@@ -168,7 +169,7 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((error, req, res, next) => {
-  console.error("Unhandled error:", error);
+  logger.error("Unhandled error:", error);
   res.status(500).json({
     error: "Internal server error",
     message: "Something went wrong",
@@ -177,7 +178,7 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api/chat`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  logger.info(`Server running on http://localhost:${PORT}`);
+  logger.info(`API available at http://localhost:${PORT}/api/chat`);
+  logger.info(`Health check: http://localhost:${PORT}/api/health`);
 });

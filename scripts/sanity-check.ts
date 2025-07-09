@@ -2,39 +2,40 @@
 
 import "dotenv/config";
 import { sendMessage, getAvailableProviders } from "../lib/ai-client.ts";
+import { logger } from "../lib/logger.ts";
 
 async function runSanityCheck() {
-  console.log("Starting AI provider sanity check...");
+  logger.info("Starting AI provider sanity check...");
 
   const availableProviders = getAvailableProviders();
 
   if (availableProviders.length === 0) {
-    console.log(
+    logger.warn(
       "No available providers with valid API keys. Skipping sanity check."
     );
     return;
   }
 
-  console.log(`Found available providers: ${availableProviders.join(", ")}`);
+  logger.info(`Found available providers: ${availableProviders.join(", ")}`);
 
   for (const provider of availableProviders) {
     try {
-      console.log(`\n--- Checking ${provider} ---`);
+      logger.info(`\n--- Checking ${provider} ---`);
       const response = await sendMessage(
         [{ role: "user", content: "hello" }],
         provider
       );
-      console.log(`[${provider}] Response: ${response}`);
+      logger.info(`[${provider}] Response: ${response}`);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(`[${provider}] Error: ${error.message}`);
+        logger.error(`[${provider}] Error: ${error.message}`);
       } else {
-        console.error(`[${provider}] An unknown error occurred.`);
+        logger.error(`[${provider}] An unknown error occurred.`);
       }
     }
   }
 
-  console.log("\nSanity check complete.");
+  logger.info("\nSanity check complete.");
 }
 
 runSanityCheck();
