@@ -15,5 +15,11 @@
     "openrouter",
     "pkill",
     "tsparser"
+  ],
+  "cSpell.ignorePaths": [
+    "**/*.min.js",
+    "public/js/**",
+    "public/css/**",
+    "node_modules/**"
   ]
 }
