@@ -8,9 +8,16 @@ This is a Node.js/Express web application that provides a chat interface for int
 
 ## Architecture
 
+The application now follows a layered architecture with dependency injection:
+
 - **Backend**: Express.js server (`server.ts`) that handles API routes and serves static files
 - **Frontend**: Single HTML file (`public/index.html`) with embedded CSS and JavaScript
 - **API Client**: AI SDK integration module (`lib/ai-client.ts`) that handles multi-provider API communication using Vercel AI SDK
+- **Controllers**: Route handlers that orchestrate services (`controllers/`)
+- **Services**: Business logic layer with dependency injection (`services/`)
+- **Repositories**: Data access layer for configuration and provider management (`repositories/`)
+- **Middleware**: Cross-cutting concerns like error handling, validation, and logging (`middleware/`)
+- **Dependency Injection**: Container for managing service lifecycles (`lib/container.ts`)
 - **Configuration**: 
   - Environment variables managed via `.env` file and dotenv package
   - Model configurations stored in `data/config/models.json`
@@ -58,11 +65,17 @@ The frontend is a single html page with:
 - Uses the Vercel AI SDK to abstract calls to multiple providers
 - Dynamic provider/model selection with user preference persistence
 - Simplified error handling and API key validation
+- Layered architecture with dependency injection for better maintainability
 
 ## Code Structure
 
-- `server.ts`: Main Express server with middleware, routes, and error handling
+- `server.ts`: Main Express server with middleware and route registration
+- `controllers/`: Route handlers that orchestrate services
+- `services/`: Business logic with dependency injection
+- `repositories/`: Data access layer for configuration and providers
+- `middleware/`: Cross-cutting concerns (error handling, validation, logging)
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
+- `lib/container.ts`: Dependency injection container
 - `lib/logger.ts`: Simple logging wrapper using @iankulin/logger
 - `public/index.html`: Complete frontend with HTML, CSS, and JavaScript
 - `data/config/models.json`: Provider and model configuration
@@ -105,6 +118,12 @@ At the conclusion of any change, run and fix:
 
 ## Recent Improvements
 
+- **Complete architecture refactoring**: Implemented layered architecture with dependency injection
+- **Service layer**: Extracted business logic into focused services
+- **Repository pattern**: Created data access layer for configuration and provider management
+- **Middleware layer**: Centralized cross-cutting concerns like error handling and validation
+- **Controller layer**: Thin controllers that orchestrate services
+- **Dependency injection**: Added DI container for service lifecycle management
 - **Simplified API key validation**: Removed overly complex format checking, now just validates presence and minimum length
 - **Eliminated duplicate interfaces**: `ChatMessage` interface now only defined in `lib/ai-client.ts`
 - **Streamlined error handling**: Consolidated error message sanitization into a single function
