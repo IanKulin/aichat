@@ -35,7 +35,10 @@
       "WebFetch(domain:platform.openai.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:openrouter.ai)",
-      "mcp__playwright__playwright_select"
+      "mcp__playwright__playwright_select",
+      "WebFetch(domain:vercel.com)",
+      "Bash(cp:*)",
+      "Bash(npx @ai-sdk/codemod:*)"
     ],
     "deny": []
   }
