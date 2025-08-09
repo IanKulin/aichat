@@ -4,3 +4,4 @@
 0.0.2 Implement Vercel AI SDK
 0.0.3 Clear chat, provider/model choice, logger
 0.0.4 Script for checking model names
+0.0.5 ai package: v4.3.17 → v5.0.8

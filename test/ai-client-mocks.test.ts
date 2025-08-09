@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { MockLanguageModelV1, simulateReadableStream, mockValues } from 'ai/test'
+import { MockLanguageModelV2, simulateReadableStream, mockValues } from 'ai/test'
 import { sendMessage, streamMessage } from '../lib/ai-client.ts'
 
 describe('AI Client Mock Tests', () => {
@@ -10,11 +10,12 @@ describe('AI Client Mock Tests', () => {
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
       
       // Mock the getProviderModel function by testing directly with mock
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: 'Hello, this is a test response!',
           finishReason: 'stop',
-          usage: { promptTokens: 10, completionTokens: 20 }
+          usage: { inputTokens: 10, outputTokens: 20 },
+          content: [{ type: 'text', text: 'Hello, this is a test response!' }],
+          warnings: []
         })
       })
 
@@ -22,19 +23,22 @@ describe('AI Client Mock Tests', () => {
       const { generateText } = await import('ai')
       const result = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
       assert.strictEqual(result.text, 'Hello, this is a test response!')
       assert.strictEqual(result.finishReason, 'stop')
-      assert.strictEqual(result.usage.promptTokens, 10)
-      assert.strictEqual(result.usage.completionTokens, 20)
+      assert.strictEqual(result.usage.inputTokens, 10)
+      assert.strictEqual(result.usage.outputTokens, 20)
     })
 
     test('should handle mock provider errors', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => {
           throw new Error('Mock API error')
         }
@@ -45,8 +49,12 @@ describe('AI Client Mock Tests', () => {
       try {
         await generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Hello' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Hello'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
         assert.fail('Should have thrown an error')
@@ -57,11 +65,12 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle different message types', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: 'Response to user message',
           finishReason: 'stop',
-          usage: { promptTokens: 15, completionTokens: 25 }
+          usage: { inputTokens: 15, outputTokens: 25 },
+          content: [{ type: 'text', text: 'Response to user message' }],
+          warnings: []
         })
       })
 
@@ -69,10 +78,17 @@ describe('AI Client Mock Tests', () => {
       const result = await generateText({
         model: mockModel,
         messages: [
-          { role: 'system', content: 'You are a helpful assistant' },
-          { role: 'user', content: 'What is 2+2?' }
+          {
+            role: 'system',
+            content: 'You are a helpful assistant'
+          },
+          {
+            role: 'user',
+
+            content: 'What is 2+2?'
+          }
         ],
-        maxTokens: 1000,
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -80,24 +96,29 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle finish reasons correctly', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: 'This response was cut off due to length',
           finishReason: 'length',
-          usage: { promptTokens: 5, completionTokens: 1000 }
+          usage: { inputTokens: 5, outputTokens: 1000 },
+          content: [{ type: 'text', text: 'This response was cut off due to length' }],
+          warnings: []
         })
       })
 
       const { generateText } = await import('ai')
       const result = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Write a very long story' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+
+          content: 'Write a very long story'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
       assert.strictEqual(result.finishReason, 'length')
-      assert.strictEqual(result.usage.completionTokens, 1000)
+      assert.strictEqual(result.usage.outputTokens, 1000)
     })
   })
 
@@ -105,14 +126,14 @@ describe('AI Client Mock Tests', () => {
     test('should return streaming response from mock provider', async () => {
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
       
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doStream: async () => ({
           stream: simulateReadableStream({
             chunks: [
-              { type: 'text-delta', textDelta: 'Hello' },
-              { type: 'text-delta', textDelta: ', ' },
-              { type: 'text-delta', textDelta: 'world!' },
-              { type: 'finish', finishReason: 'stop', usage: { promptTokens: 5, completionTokens: 12 } }
+              { type: 'text-delta', delta: 'Hello' },
+              { type: 'text-delta', delta: ', ' },
+              { type: 'text-delta', delta: 'world!' },
+              { type: 'finish', finishReason: 'stop', usage: { inputTokens: 5, outputTokens: 12 } }
             ]
           })
         })
@@ -121,8 +142,11 @@ describe('AI Client Mock Tests', () => {
       const { streamText } = await import('ai')
       const result = await streamText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -136,7 +160,7 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle streaming errors', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doStream: async () => {
           throw new Error('Streaming error')
         }
@@ -147,8 +171,12 @@ describe('AI Client Mock Tests', () => {
       try {
         const result = await streamText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Hello' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Hello'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
         
@@ -166,11 +194,11 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle empty stream', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doStream: async () => ({
           stream: simulateReadableStream({
             chunks: [
-              { type: 'finish', finishReason: 'stop', usage: { promptTokens: 5, completionTokens: 0 } }
+              { type: 'finish', finishReason: 'stop', usage: { inputTokens: 5, outputTokens: 0 } }
             ]
           })
         })
@@ -179,8 +207,11 @@ describe('AI Client Mock Tests', () => {
       const { streamText } = await import('ai')
       const result = await streamText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -193,16 +224,16 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle stream with multiple message types', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doStream: async () => ({
           stream: simulateReadableStream({
             chunks: [
-              { type: 'text-delta', textDelta: 'User' },
-              { type: 'text-delta', textDelta: ' asked: ' },
-              { type: 'text-delta', textDelta: 'Hello' },
-              { type: 'text-delta', textDelta: '. ' },
-              { type: 'text-delta', textDelta: 'Assistant responds.' },
-              { type: 'finish', finishReason: 'stop', usage: { promptTokens: 8, completionTokens: 15 } }
+              { type: 'text-delta', delta: 'User' },
+              { type: 'text-delta', delta: ' asked: ' },
+              { type: 'text-delta', delta: 'Hello' },
+              { type: 'text-delta', delta: '. ' },
+              { type: 'text-delta', delta: 'Assistant responds.' },
+              { type: 'finish', finishReason: 'stop', usage: { inputTokens: 8, outputTokens: 15 } }
             ]
           })
         })
@@ -212,10 +243,18 @@ describe('AI Client Mock Tests', () => {
       const result = await streamText({
         model: mockModel,
         messages: [
-          { role: 'system', content: 'You are helpful' },
-          { role: 'user', content: 'Hello' }
+          {
+            role: 'system',
+
+            content: 'You are helpful'
+          },
+          {
+            role: 'user',
+
+            content: 'Hello'
+          }
         ],
-        maxTokens: 1000,
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -230,40 +269,48 @@ describe('AI Client Mock Tests', () => {
 
   describe('Mock provider parameter validation', () => {
     test('should respect maxTokens parameter', async () => {
-      const mockModel = new MockLanguageModelV1({
-        doGenerate: async ({ maxTokens }) => ({
-          text: 'Response',
-          finishReason: maxTokens && maxTokens < 50 ? 'length' : 'stop',
-          usage: { promptTokens: 10, completionTokens: maxTokens || 100 }
+      const mockModel = new MockLanguageModelV2({
+        doGenerate: async ({ maxOutputTokens }) => ({
+          finishReason: maxOutputTokens && maxOutputTokens < 50 ? 'length' : 'stop',
+          usage: { inputTokens: 10, outputTokens: maxOutputTokens || 100 },
+          content: [{ type: 'text', text: 'Response' }],
+          warnings: []
         })
       })
 
       const { generateText } = await import('ai')
       const result = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 30,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 30,
         temperature: 0.7
       })
 
       assert.strictEqual(result.finishReason, 'length')
-      assert.strictEqual(result.usage.completionTokens, 30)
+      assert.strictEqual(result.usage.outputTokens, 30)
     })
 
     test('should respect temperature parameter', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async ({ temperature }) => ({
-          text: `Temperature was: ${temperature}`,
           finishReason: 'stop',
-          usage: { promptTokens: 10, completionTokens: 20 }
+          usage: { inputTokens: 10, outputTokens: 20 },
+          content: [{ type: 'text', text: `Temperature was: ${temperature}` }],
+          warnings: []
         })
       })
 
       const { generateText } = await import('ai')
       const result = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.5
       })
 
@@ -276,11 +323,12 @@ describe('AI Client Mock Tests', () => {
       let callCount = 0
       const responses = ['First response', 'Second response', 'Third response']
       
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: responses[callCount++ % responses.length],
           finishReason: 'stop',
-          usage: { promptTokens: 10, completionTokens: 20 }
+          usage: { inputTokens: 10, outputTokens: 20 },
+          content: [{ type: 'text', text: responses[callCount++ % responses.length] }],
+          warnings: []
         })
       })
 
@@ -289,22 +337,31 @@ describe('AI Client Mock Tests', () => {
       // Test that responses cycle through the array
       const result1 = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
       
       const result2 = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
       
       const result3 = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -319,19 +376,24 @@ describe('AI Client Mock Tests', () => {
       // Test OpenAI model validation
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
       
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: 'OpenAI response',
           finishReason: 'stop',
-          usage: { promptTokens: 5, completionTokens: 15 }
+          usage: { inputTokens: 5, outputTokens: 15 },
+          content: [{ type: 'text', text: 'OpenAI response' }],
+          warnings: []
         })
       })
 
       const { generateText } = await import('ai')
       const result = await generateText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Test OpenAI' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+
+          content: 'Test OpenAI'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -341,11 +403,12 @@ describe('AI Client Mock Tests', () => {
     test('should handle model-specific parameters', async () => {
       process.env.ANTHROPIC_API_KEY = 'valid-anthropic-key'
       
-      const mockModel = new MockLanguageModelV1({
-        doGenerate: async ({ maxTokens, temperature }) => ({
-          text: `Model processed with maxTokens=${maxTokens} and temperature=${temperature}`,
+      const mockModel = new MockLanguageModelV2({
+        doGenerate: async ({ maxOutputTokens, temperature }) => ({
           finishReason: 'stop',
-          usage: { promptTokens: 10, completionTokens: 30 }
+          usage: { inputTokens: 10, outputTokens: 30 },
+          content: [{ type: 'text', text: `Model processed with maxTokens=${maxOutputTokens} and temperature=${temperature}` }],
+          warnings: []
         })
       })
 
@@ -353,10 +416,18 @@ describe('AI Client Mock Tests', () => {
       const result = await generateText({
         model: mockModel,
         messages: [
-          { role: 'system', content: 'You are Claude' },
-          { role: 'user', content: 'Hello' }
+          {
+            role: 'system',
+
+            content: 'You are Claude'
+          },
+          {
+            role: 'user',
+
+            content: 'Hello'
+          }
         ],
-        maxTokens: 500,
+        maxOutputTokens: 500,
         temperature: 0.3
       })
 
@@ -374,19 +445,24 @@ describe('AI Client Mock Tests', () => {
       for (const provider of providers) {
         process.env[provider.envVar] = provider.key
         
-        const mockModel = new MockLanguageModelV1({
+        const mockModel = new MockLanguageModelV2({
           doGenerate: async () => ({
-            text: `Response from ${provider.name}`,
             finishReason: 'stop',
-            usage: { promptTokens: 8, completionTokens: 20 }
+            usage: { inputTokens: 8, outputTokens: 20 },
+            content: [{ type: 'text', text: `Response from ${provider.name}` }],
+            warnings: []
           })
         })
 
         const { generateText } = await import('ai')
         const result = await generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: `Test ${provider.name}` }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: `Test ${provider.name}`
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
 
@@ -397,7 +473,7 @@ describe('AI Client Mock Tests', () => {
 
   describe('Error scenarios and edge cases', () => {
     test('should handle network timeout simulation', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => {
           // Simulate timeout
           await new Promise(resolve => setTimeout(resolve, 100))
@@ -410,8 +486,12 @@ describe('AI Client Mock Tests', () => {
       try {
         await generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Hello' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Hello'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
         assert.fail('Should have thrown timeout error')
@@ -422,7 +502,7 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle API rate limit errors', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => {
           throw new Error('Rate limit exceeded. Please try again later.')
         }
@@ -433,8 +513,12 @@ describe('AI Client Mock Tests', () => {
       try {
         await generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Hello' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Hello'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
         assert.fail('Should have thrown rate limit error')
@@ -445,7 +529,7 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle malformed API responses', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => {
           throw new Error('Invalid response format')
         }
@@ -456,8 +540,12 @@ describe('AI Client Mock Tests', () => {
       try {
         await generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Hello' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Hello'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
         assert.fail('Should have thrown format error')
@@ -468,13 +556,13 @@ describe('AI Client Mock Tests', () => {
     })
 
     test('should handle streaming interruption', async () => {
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doStream: async () => ({
           stream: simulateReadableStream({
             chunks: [
-              { type: 'text-delta', textDelta: 'Hello' },
-              { type: 'text-delta', textDelta: ', ' },
-              { type: 'finish', finishReason: 'stop', usage: { promptTokens: 5, completionTokens: 10 } }
+              { type: 'text-delta', delta: 'Hello' },
+              { type: 'text-delta', delta: ', ' },
+              { type: 'finish', finishReason: 'stop', usage: { inputTokens: 5, outputTokens: 10 } }
             ]
           })
         })
@@ -483,8 +571,11 @@ describe('AI Client Mock Tests', () => {
       const { streamText } = await import('ai')
       const result = await streamText({
         model: mockModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        maxTokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Hello'
+        }],
+        maxOutputTokens: 1000,
         temperature: 0.7
       })
 
@@ -501,11 +592,12 @@ describe('AI Client Mock Tests', () => {
       let callCount = 0
       const responses = ['Response 1', 'Response 2', 'Response 3']
       
-      const mockModel = new MockLanguageModelV1({
+      const mockModel = new MockLanguageModelV2({
         doGenerate: async () => ({
-          text: responses[callCount++ % responses.length],
           finishReason: 'stop',
-          usage: { promptTokens: 5, completionTokens: 15 }
+          usage: { inputTokens: 5, outputTokens: 15 },
+          content: [{ type: 'text', text: responses[callCount++ % responses.length] }],
+          warnings: []
         })
       })
 
@@ -515,20 +607,32 @@ describe('AI Client Mock Tests', () => {
       const promises = [
         generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Request 1' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Request 1'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         }),
         generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Request 2' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Request 2'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         }),
         generateText({
           model: mockModel,
-          messages: [{ role: 'user', content: 'Request 3' }],
-          maxTokens: 1000,
+          messages: [{
+            role: 'user',
+
+            content: 'Request 3'
+          }],
+          maxOutputTokens: 1000,
           temperature: 0.7
         })
       ]

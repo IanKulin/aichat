@@ -13,7 +13,12 @@ export interface ChatMessage {
   content: string;
 }
 
-export type SupportedProvider = "openai" | "anthropic" | "google" | "deepseek" | "openrouter";
+export type SupportedProvider =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "deepseek"
+  | "openrouter";
 
 interface ProviderConfig {
   name: string;
@@ -117,7 +122,11 @@ function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
     },
     openrouter: {
       name: "OpenRouter",
-      models: ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "moonshotai/kimi-k2"],
+      models: [
+        "openai/gpt-4o",
+        "anthropic/claude-3.5-sonnet",
+        "moonshotai/kimi-k2",
+      ],
       defaultModel: "openai/gpt-4o",
     },
   };
@@ -226,7 +235,10 @@ export function validateApiKey(
   }
 
   if (provider === "openrouter" && !apiKey.startsWith("sk-or-")) {
-    return { valid: false, message: 'OpenRouter API key should start with "sk-or-"' };
+    return {
+      valid: false,
+      message: 'OpenRouter API key should start with "sk-or-"',
+    };
   }
 
   if (apiKey.length < 10) {
@@ -242,7 +254,13 @@ export function validateApiKey(
 // Get available providers (only those with valid API keys)
 export function getAvailableProviders(): SupportedProvider[] {
   return (
-    ["openai", "anthropic", "google", "deepseek", "openrouter"] as SupportedProvider[]
+    [
+      "openai",
+      "anthropic",
+      "google",
+      "deepseek",
+      "openrouter",
+    ] as SupportedProvider[]
   ).filter((provider) => validateApiKey(provider).valid);
 }
 
@@ -263,7 +281,7 @@ export async function sendMessage(
     const result = await generateText({
       model: providerModel,
       messages,
-      maxTokens: 1000,
+      maxOutputTokens: 1000,
       temperature: 0.7,
     });
 
@@ -298,14 +316,14 @@ export async function streamMessage(
   try {
     const providerModel = getProviderModel(provider, model);
 
-    const result = await streamText({
+    const result = streamText({
       model: providerModel,
       messages,
-      maxTokens: 1000,
+      maxOutputTokens: 1000,
       temperature: 0.7,
     });
 
-    return result.toDataStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     if (error instanceof Error) {
       // Enhanced error handling for streaming
@@ -335,7 +353,13 @@ export function validateAllProviders(): Record<
   const results = {} as Record<SupportedProvider, ApiKeyValidation>;
 
   (
-    ["openai", "anthropic", "google", "deepseek", "openrouter"] as SupportedProvider[]
+    [
+      "openai",
+      "anthropic",
+      "google",
+      "deepseek",
+      "openrouter",
+    ] as SupportedProvider[]
   ).forEach((provider) => {
     results[provider] = validateApiKey(provider);
   });
