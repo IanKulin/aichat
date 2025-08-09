@@ -8,10 +8,10 @@ This is a Node.js/Express web application that provides a chat interface for int
 
 ## Architecture
 
-The application now follows a layered architecture with dependency injection:
+The application follows a layered architecture with dependency injection:
 
 - **Backend**: Express.js server (`server.ts`) that handles API routes and serves static files
-- **Frontend**: Single HTML file (`public/index.html`) with embedded CSS and JavaScript
+- **Frontend**: Single HTML file (`public/index.html`) with organized CSS (`public/css/`) and JavaScript assets (`public/js/`)
 - **API Client**: AI SDK integration module (`lib/ai-client.ts`) that handles multi-provider API communication using Vercel AI SDK
 - **Controllers**: Route handlers that orchestrate services (`controllers/`)
 - **Services**: Business logic layer with dependency injection (`services/`)
@@ -77,7 +77,9 @@ The frontend is a single html page with:
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
 - `lib/container.ts`: Dependency injection container
 - `lib/logger.ts`: Simple logging wrapper using @iankulin/logger
-- `public/index.html`: Complete frontend with HTML, CSS, and JavaScript
+- `public/index.html`: Complete frontend HTML file
+- `public/css/`: Stylesheets including app styles and third-party CSS (Highlight.js themes)
+- `public/js/`: JavaScript assets including third-party libraries (DOMPurify, Highlight.js)
 - `data/config/models.json`: Provider and model configuration
 
 ## Configuration Management
@@ -115,17 +117,3 @@ At the conclusion of any change, run and fix:
 - `npm run typecheck`
 - `npm run lint`
 - `npm run format`
-
-## Recent Improvements
-
-- **Complete architecture refactoring**: Implemented layered architecture with dependency injection
-- **Service layer**: Extracted business logic into focused services
-- **Repository pattern**: Created data access layer for configuration and provider management
-- **Middleware layer**: Centralized cross-cutting concerns like error handling and validation
-- **Controller layer**: Thin controllers that orchestrate services
-- **Dependency injection**: Added DI container for service lifecycle management
-- **Simplified API key validation**: Removed overly complex format checking, now just validates presence and minimum length
-- **Eliminated duplicate interfaces**: `ChatMessage` interface now only defined in `lib/ai-client.ts`
-- **Streamlined error handling**: Consolidated error message sanitization into a single function
-- **Updated model configurations**: Refreshed with current model names and better defaults
-- **Added missing data directory**: Created proper structure for configuration files
