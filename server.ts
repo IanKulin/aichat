@@ -7,10 +7,10 @@ import {
   sendMessage,
   validateAllProviders,
   getProviderConfig,
-  providerConfigs,
   type SupportedProvider,
   type ChatMessage,
 } from "./lib/ai-client.ts";
+import { getProviderService } from "./lib/services.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,8 +49,9 @@ app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
 
 // Validate API keys on startup
+const providerService = getProviderService();
 const providerValidations = validateAllProviders();
-const availableProviders = Object.keys(providerConfigs) as SupportedProvider[];
+const availableProviders = providerService.getAvailableProviders();
 
 Object.entries(providerValidations).forEach(([provider, validation]) => {
   if (!validation.valid) {
@@ -84,7 +85,7 @@ app.post("/api/chat", async (req, res) => {
 
     // Validate provider if specified
     const selectedProvider = provider || "openai";
-    if (!availableProviders.includes(selectedProvider as SupportedProvider)) {
+    if (!providerService.validateProvider(selectedProvider)) {
       return res.status(400).json({
         error: "Invalid provider",
         message: `Provider '${selectedProvider}' is not available. Available providers: ${availableProviders.join(", ")}`,
@@ -134,12 +135,7 @@ app.post("/api/chat", async (req, res) => {
 
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
-  const providersData = availableProviders.map((provider) => ({
-    id: provider,
-    name: providerConfigs[provider].name,
-    models: providerConfigs[provider].models,
-    defaultModel: providerConfigs[provider].defaultModel,
-  }));
+  const providersData = providerService.getProviderInfo();
 
   res.json({
     providers: providersData,
@@ -150,16 +146,14 @@ app.get("/api/providers", (req, res) => {
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   const providerValidations = validateAllProviders();
-  const availableProviders = Object.keys(
-    providerConfigs
-  ) as SupportedProvider[];
+  const currentAvailableProviders = providerService.getAvailableProviders();
 
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
     providers: providerValidations,
-    available_providers: availableProviders,
+    available_providers: currentAvailableProviders,
   });
 });
 
