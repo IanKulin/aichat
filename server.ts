@@ -3,14 +3,13 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { logger } from "./lib/logger.ts";
+import { validateAllProviders } from "./lib/ai-client.ts";
 import {
-  sendMessage,
-  validateAllProviders,
-  getProviderConfig,
-  type SupportedProvider,
-  type ChatMessage,
-} from "./lib/ai-client.ts";
-import { getProviderService } from "./lib/services.ts";
+  getProviderService,
+  getChatController,
+  getProviderController,
+  getHealthController,
+} from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
 import {
   validateChatRequest,
@@ -26,13 +25,6 @@ dotenv.config();
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Type definitions
-interface ChatRequest {
-  messages: ChatMessage[];
-  provider?: string;
-  model?: string;
-}
-
 // Middleware
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
@@ -40,8 +32,13 @@ app.use(validateJsonBody);
 app.use(requestLogger);
 app.use(chatLogger);
 
-// Validate API keys on startup
+// Initialize controllers and services
 const providerService = getProviderService();
+const chatController = getChatController();
+const providerController = getProviderController();
+const healthController = getHealthController();
+
+// Validate API keys on startup
 const providerValidations = validateAllProviders();
 const availableProviders = providerService.getAvailableProviders();
 
@@ -66,56 +63,18 @@ app.post(
   "/api/chat",
   validateChatRequest,
   asyncHandler(async (req, res) => {
-    const { messages, provider, model }: ChatRequest = req.body;
-
-    // Default provider selection
-    const selectedProvider = provider || "openai";
-
-    // Get the actual model that will be used
-    const providerConfig = getProviderConfig(
-      selectedProvider as SupportedProvider
-    );
-    const actualModel = model || providerConfig.defaultModel;
-
-    // Send full conversation to selected provider
-    const aiResponse = await sendMessage(
-      messages,
-      selectedProvider as SupportedProvider,
-      actualModel
-    );
-
-    res.json({
-      response: aiResponse,
-      timestamp: new Date().toISOString(),
-      provider: selectedProvider,
-      providerName: providerConfig.name,
-      model: actualModel,
-    });
+    await chatController.processMessage(req, res);
   })
 );
 
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
-  const providersData = providerService.getProviderInfo();
-
-  res.json({
-    providers: providersData,
-    default: availableProviders.length > 0 ? availableProviders[0] : null,
-  });
+  providerController.getProviders(req, res);
 });
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  const providerValidations = validateAllProviders();
-  const currentAvailableProviders = providerService.getAvailableProviders();
-
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    version: "1.0.0",
-    providers: providerValidations,
-    available_providers: currentAvailableProviders,
-  });
+  healthController.checkHealth(req, res);
 });
 
 // serve index.html for the default route

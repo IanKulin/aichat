@@ -6,7 +6,7 @@ import {
   getChatService,
 } from "./services.ts";
 
-// Re-declare types locally to avoid import issues with Node.js strip-types
+// Local type definitions to avoid circular imports and Node.js strip-types issues
 export type SupportedProvider =
   | "openai"
   | "anthropic"

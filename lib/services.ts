@@ -18,6 +18,18 @@ import {
   ProviderRepository,
   DefaultProviderRepository,
 } from "../repositories/ProviderRepository.ts";
+import {
+  ChatController,
+  DefaultChatController,
+} from "../controllers/ChatController.ts";
+import {
+  ProviderController,
+  DefaultProviderController,
+} from "../controllers/ProviderController.ts";
+import {
+  HealthController,
+  DefaultHealthController,
+} from "../controllers/HealthController.ts";
 
 // Initialize services in the DI container
 export function initializeServices(): void {
@@ -52,6 +64,31 @@ export function initializeServices(): void {
     const configService = container.resolve<ConfigService>("ConfigService");
     return new DefaultChatService(providerService, configService);
   });
+
+  // Register Controllers
+  registerSingleton<ChatController>("ChatController", () => {
+    const chatService = container.resolve<ChatService>("ChatService");
+    const providerService =
+      container.resolve<ProviderService>("ProviderService");
+    const configService = container.resolve<ConfigService>("ConfigService");
+    return new DefaultChatController(
+      chatService,
+      providerService,
+      configService
+    );
+  });
+
+  registerSingleton<ProviderController>("ProviderController", () => {
+    const providerService =
+      container.resolve<ProviderService>("ProviderService");
+    return new DefaultProviderController(providerService);
+  });
+
+  registerSingleton<HealthController>("HealthController", () => {
+    const providerService =
+      container.resolve<ProviderService>("ProviderService");
+    return new DefaultHealthController(providerService);
+  });
 }
 
 // Helper functions to resolve services
@@ -65,6 +102,18 @@ export function getProviderService(): ProviderService {
 
 export function getChatService(): ChatService {
   return container.resolve<ChatService>("ChatService");
+}
+
+export function getChatController(): ChatController {
+  return container.resolve<ChatController>("ChatController");
+}
+
+export function getProviderController(): ProviderController {
+  return container.resolve<ProviderController>("ProviderController");
+}
+
+export function getHealthController(): HealthController {
+  return container.resolve<HealthController>("HealthController");
 }
 
 // Initialize services when this module is imported
