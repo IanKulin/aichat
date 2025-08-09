@@ -82,8 +82,8 @@ describe('AI Client Tests', () => {
     test('should return correct config for google', () => {
       const config = getProviderConfig('google')
       assert.ok(config)
-      assert.strictEqual(config.models.includes('gemini-2.0-flash-exp'), true)
-      assert.strictEqual(config.defaultModel, 'gemini-2.0-flash-exp')
+      assert.strictEqual(config.models.includes('gemini-2.5-flash'), true)
+      assert.strictEqual(config.defaultModel, 'gemini-2.5-flash')
     })
 
     test('should return correct config for anthropic', () => {
