@@ -1,11 +1,7 @@
 // services/ProviderService.ts - Provider management service
 
-import { openai } from "@ai-sdk/openai";
-import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
-import { deepseek } from "@ai-sdk/deepseek";
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { ConfigService } from "./ConfigService.ts";
+import { ProviderRepository } from "../repositories/ProviderRepository.ts";
 
 // Re-declare types locally to avoid import issues with Node.js strip-types
 export type SupportedProvider =
@@ -44,10 +40,12 @@ export abstract class ProviderService {
 
 export class DefaultProviderService extends ProviderService {
   private configService: ConfigService;
+  private providerRepository: ProviderRepository;
 
-  constructor(configService: ConfigService) {
+  constructor(configService: ConfigService, providerRepository: ProviderRepository) {
     super();
     this.configService = configService;
+    this.providerRepository = providerRepository;
   }
 
   getAvailableProviders(): SupportedProvider[] {
@@ -90,69 +88,11 @@ export class DefaultProviderService extends ProviderService {
     // Runtime validation: warn if model might be deprecated or experimental
     this.validateModelAtRuntime(provider, selectedModel);
 
-    // Initialize provider dynamically to handle environment variable loading
-    switch (provider) {
-      case "openai":
-        if (!process.env.OPENAI_API_KEY) {
-          throw new Error(
-            `Provider ${provider} is not configured (API key missing)`
-          );
-        }
-        return openai(selectedModel);
-      case "anthropic":
-        if (!process.env.ANTHROPIC_API_KEY) {
-          throw new Error(
-            `Provider ${provider} is not configured (API key missing)`
-          );
-        }
-        return anthropic(selectedModel);
-      case "google":
-        if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-          throw new Error(
-            `Provider ${provider} is not configured (API key missing)`
-          );
-        }
-        return google(selectedModel);
-      case "deepseek":
-        if (!process.env.DEEPSEEK_API_KEY) {
-          throw new Error(
-            `Provider ${provider} is not configured (API key missing)`
-          );
-        }
-        return deepseek(selectedModel);
-      case "openrouter":
-        if (!process.env.OPENROUTER_API_KEY) {
-          throw new Error(
-            `Provider ${provider} is not configured (API key missing)`
-          );
-        }
-        return openrouter(selectedModel);
-      default:
-        throw new Error(`Unknown provider: ${provider}`);
-    }
+    return this.providerRepository.getProvider(provider, selectedModel);
   }
 
   validateApiKey(provider: SupportedProvider): ApiKeyValidation {
-    const keyMap = {
-      openai: process.env.OPENAI_API_KEY,
-      anthropic: process.env.ANTHROPIC_API_KEY,
-      google: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      deepseek: process.env.DEEPSEEK_API_KEY,
-      openrouter: process.env.OPENROUTER_API_KEY,
-    };
-
-    const apiKey = keyMap[provider];
-    const providerConfig = this.configService.getProviderConfig(provider);
-    const providerName = providerConfig.name;
-
-    if (!apiKey || apiKey.length < 10) {
-      return {
-        valid: false,
-        message: `${providerName} API key not configured`,
-      };
-    }
-
-    return { valid: true, message: `${providerName} API key configured` };
+    return this.providerRepository.validateApiKey(provider);
   }
 
   validateAllProviders(): Record<SupportedProvider, ApiKeyValidation> {

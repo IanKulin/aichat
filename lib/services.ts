@@ -10,18 +10,39 @@ import {
   DefaultProviderService,
 } from "../services/ProviderService.ts";
 import { ChatService, DefaultChatService } from "../services/ChatService.ts";
+import {
+  ModelRepository,
+  FileModelRepository,
+} from "../repositories/ModelRepository.ts";
+import {
+  ProviderRepository,
+  DefaultProviderRepository,
+} from "../repositories/ProviderRepository.ts";
 
 // Initialize services in the DI container
 export function initializeServices(): void {
-  // Register ConfigService
-  registerSingleton<ConfigService>("ConfigService", () => {
-    return new DefaultConfigService();
+  // Register repositories first
+  registerSingleton<ModelRepository>("ModelRepository", () => {
+    return new FileModelRepository();
   });
 
-  // Register ProviderService (depends on ConfigService)
+  registerSingleton<ProviderRepository>("ProviderRepository", () => {
+    return new DefaultProviderRepository();
+  });
+
+  // Register ConfigService (depends on ModelRepository)
+  registerSingleton<ConfigService>("ConfigService", () => {
+    const modelRepository =
+      container.resolve<ModelRepository>("ModelRepository");
+    return new DefaultConfigService(modelRepository);
+  });
+
+  // Register ProviderService (depends on ConfigService and ProviderRepository)
   registerSingleton<ProviderService>("ProviderService", () => {
     const configService = container.resolve<ConfigService>("ConfigService");
-    return new DefaultProviderService(configService);
+    const providerRepository =
+      container.resolve<ProviderRepository>("ProviderRepository");
+    return new DefaultProviderService(configService, providerRepository);
   });
 
   // Register ChatService (depends on ProviderService and ConfigService)

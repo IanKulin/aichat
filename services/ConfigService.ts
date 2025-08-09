@@ -1,8 +1,8 @@
 // services/ConfigService.ts - Configuration management service
 
-import fs from "fs";
-import path from "path";
+import { ModelRepository } from "../repositories/ModelRepository.ts";
 
+// Re-declare types locally to avoid import issues with Node.js strip-types
 export type SupportedProvider =
   | "openai"
   | "anthropic"
@@ -16,10 +16,6 @@ export type ProviderConfig = {
   defaultModel: string;
 }
 
-export type ModelsConfig = {
-  [key: string]: ProviderConfig;
-}
-
 export abstract class ConfigService {
   abstract getProviderConfigs(): Record<string, ProviderConfig>;
   abstract getProviderConfig(provider: SupportedProvider): ProviderConfig;
@@ -27,11 +23,13 @@ export abstract class ConfigService {
 }
 
 export class DefaultConfigService extends ConfigService {
+  private modelRepository: ModelRepository;
   private providerConfigs: Record<string, ProviderConfig>;
 
-  constructor() {
+  constructor(modelRepository: ModelRepository) {
     super();
-    this.providerConfigs = this.loadModelsConfig();
+    this.modelRepository = modelRepository;
+    this.providerConfigs = this.modelRepository.loadModelsConfig();
   }
 
   getProviderConfigs(): Record<string, ProviderConfig> {
@@ -47,62 +45,6 @@ export class DefaultConfigService extends ConfigService {
   }
 
   validateConfiguration(): void {
-    this.validateModelsJson(this.providerConfigs);
-  }
-
-  private validateModelsJson(
-    data: Record<string, unknown>
-  ): data is ModelsConfig {
-    const requiredProviders: SupportedProvider[] = [
-      "openai",
-      "anthropic",
-      "google",
-      "deepseek",
-      "openrouter",
-    ];
-
-    for (const provider of requiredProviders) {
-      if (!data[provider]) {
-        throw new Error(`Missing required provider: ${provider}`);
-      }
-
-      const config = data[provider] as ProviderConfig;
-      if (!config.name || !Array.isArray(config.models) || !config.defaultModel) {
-        throw new Error(`Invalid configuration for provider: ${provider}`);
-      }
-
-      if (!config.models.includes(config.defaultModel)) {
-        throw new Error(
-          `Default model ${config.defaultModel} not in models list for ${provider}`
-        );
-      }
-    }
-    return true;
-  }
-
-  private loadModelsConfig(): Record<string, ProviderConfig> {
-    try {
-      const configPath = path.join(
-        process.cwd(),
-        "data",
-        "config",
-        "models.json"
-      );
-      const configData = fs.readFileSync(configPath, "utf-8");
-      const configs = JSON.parse(configData);
-
-      this.validateModelsJson(configs);
-
-      return configs;
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("FATAL: Invalid models.json configuration:", error.message);
-      } else {
-        console.error(
-          "FATAL: An unknown error occurred while loading configuration."
-        );
-      }
-      process.exit(1);
-    }
+    this.modelRepository.validateModelsConfig(this.providerConfigs);
   }
 }
