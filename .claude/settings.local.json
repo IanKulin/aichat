@@ -33,7 +33,9 @@
       "Bash(mv:*)",
       "WebFetch(domain:sdk.vercel.ai)",
       "WebFetch(domain:platform.openai.com)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:openrouter.ai)",
+      "mcp__playwright__playwright_select"
     ],
     "deny": []
   }
