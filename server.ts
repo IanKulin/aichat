@@ -42,7 +42,7 @@ const availableProviders = getAvailableProviders();
 
 Object.entries(providerValidations).forEach(([provider, validation]) => {
   if (!validation.valid) {
-    logger.warn(`${provider}: ${validation.message}`)
+    logger.warn(`${provider}: ${validation.message}`);
   }
 });
 
@@ -53,9 +53,7 @@ if (availableProviders.length === 0) {
   );
   logger.warn("   Example: export OPENAI_API_KEY=sk-your-key-here");
 } else {
-  logger.info(
-    `Valid providers: ${availableProviders.join(", ")}`
-  );
+  logger.info(`Valid providers: ${availableProviders.join(", ")}`);
 }
 
 // Chat endpoint with multi-provider support
@@ -86,7 +84,9 @@ app.post("/api/chat", async (req, res) => {
     );
 
     // Get the actual model that will be used
-    const providerConfig = getProviderConfig(selectedProvider as SupportedProvider);
+    const providerConfig = getProviderConfig(
+      selectedProvider as SupportedProvider
+    );
     const actualModel = model || providerConfig.defaultModel;
 
     // Send full conversation to selected provider
@@ -96,7 +96,10 @@ app.post("/api/chat", async (req, res) => {
       actualModel
     );
 
-    logger.debug(`${selectedProvider} (${actualModel}) response length:`, aiResponse.length);
+    logger.debug(
+      `${selectedProvider} (${actualModel}) response length:`,
+      aiResponse.length
+    );
 
     res.json({
       response: aiResponse,
@@ -134,8 +137,8 @@ app.post("/api/chat", async (req, res) => {
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
   const availableProviders = getAvailableProviders();
-  
-  const providersData = availableProviders.map(provider => ({
+
+  const providersData = availableProviders.map((provider) => ({
     id: provider,
     name: providerConfigs[provider].name,
     models: providerConfigs[provider].models,
