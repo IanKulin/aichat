@@ -34,17 +34,17 @@ describe('Configuration Tests', () => {
 
     test('should have expected models for Google', () => {
       const googleConfig = providerConfigs.google
-      const expectedModels = ['gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro']
+      const expectedModels = ['gemini-2.5-flash-lite-preview-06-17', 'gemini-2.5-flash', 'gemini-2.5-pro']
       
       expectedModels.forEach(model => {
         assert.ok(googleConfig.models.includes(model), `Google missing model: ${model}`)
       })
-      assert.strictEqual(googleConfig.defaultModel, 'gemini-2.0-flash-exp')
+      assert.strictEqual(googleConfig.defaultModel, 'gemini-2.5-flash')
     })
 
     test('should have expected models for Anthropic', () => {
       const anthropicConfig = providerConfigs.anthropic
-      const expectedModels = ['claude-3-haiku-20240307', 'claude-3-sonnet-20240229', 'claude-3-opus-20240229']
+      const expectedModels = ['claude-3-haiku-20240307', 'claude-3-7-sonnet-20250219', 'claude-sonnet-4-20250514']
       
       expectedModels.forEach(model => {
         assert.ok(anthropicConfig.models.includes(model), `Anthropic missing model: ${model}`)
@@ -54,7 +54,7 @@ describe('Configuration Tests', () => {
 
     test('should have expected models for DeepSeek', () => {
       const deepseekConfig = providerConfigs.deepseek
-      const expectedModels = ['deepseek-chat', 'deepseek-coder']
+      const expectedModels = ['deepseek-chat', 'deepseek-coder', 'deepseek-reasoner']
       
       expectedModels.forEach(model => {
         assert.ok(deepseekConfig.models.includes(model), `DeepSeek missing model: ${model}`)
