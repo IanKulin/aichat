@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Script to add new models to the configuration
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 interface ModelConfig {
   name: string;
@@ -16,43 +16,65 @@ interface AllConfigs {
 
 function loadCurrentConfig(): AllConfigs {
   try {
-    const configPath = path.join(process.cwd(), 'data', 'config', 'models.json');
-    const configData = fs.readFileSync(configPath, 'utf-8');
+    const configPath = path.join(
+      process.cwd(),
+      "data",
+      "config",
+      "models.json"
+    );
+    const configData = fs.readFileSync(configPath, "utf-8");
     return JSON.parse(configData);
   } catch (error) {
-    console.error('❌ Failed to load current config:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      "❌ Failed to load current config:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     process.exit(1);
   }
 }
 
 function saveConfig(config: AllConfigs): void {
   try {
-    const configPath = path.join(process.cwd(), 'data', 'config', 'models.json');
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-    console.log('✅ Configuration updated successfully');
+    const configPath = path.join(
+      process.cwd(),
+      "data",
+      "config",
+      "models.json"
+    );
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
+    console.log("✅ Configuration updated successfully");
   } catch (error) {
-    console.error('❌ Failed to save config:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      "❌ Failed to save config:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     process.exit(1);
   }
 }
 
-function addModel(provider: string, model: string, setAsDefault: boolean = false): void {
+function addModel(
+  provider: string,
+  model: string,
+  setAsDefault: boolean = false
+): void {
   const config = loadCurrentConfig();
-  
+
   if (!config[provider]) {
-    console.error(`❌ Provider '${provider}' not found. Available providers: ${Object.keys(config).join(', ')}`);
+    console.error(
+      `❌ Provider '${provider}' not found. Available providers: ${Object.keys(config).join(", ")}`
+    );
     process.exit(1);
   }
-  
+
   // Check if model already exists
   if (config[provider].models.includes(model)) {
     console.log(`ℹ️  Model '${model}' already exists for ${provider}`);
     return;
   }
-  
+
   // Add the model
   config[provider].models.push(model);
-  
+
   // Set as default if requested
   if (setAsDefault) {
     config[provider].defaultModel = model;
@@ -60,30 +82,32 @@ function addModel(provider: string, model: string, setAsDefault: boolean = false
   } else {
     console.log(`📝 Added '${model}' to ${provider}`);
   }
-  
+
   saveConfig(config);
 }
 
 function listModels(provider?: string): void {
   const config = loadCurrentConfig();
-  
+
   if (provider) {
     if (!config[provider]) {
       console.error(`❌ Provider '${provider}' not found`);
       process.exit(1);
     }
-    
+
     console.log(`\n📋 Models for ${config[provider].name}:`);
     config[provider].models.forEach((model, index) => {
-      const isDefault = model === config[provider].defaultModel ? ' (default)' : '';
+      const isDefault =
+        model === config[provider].defaultModel ? " (default)" : "";
       console.log(`  ${index + 1}. ${model}${isDefault}`);
     });
   } else {
-    console.log('\n📋 All configured models:');
-    Object.entries(config).forEach(([providerKey, providerConfig]) => {
+    console.log("\n📋 All configured models:");
+    Object.values(config).forEach((providerConfig) => {
       console.log(`\n${providerConfig.name}:`);
       providerConfig.models.forEach((model, index) => {
-        const isDefault = model === providerConfig.defaultModel ? ' (default)' : '';
+        const isDefault =
+          model === providerConfig.defaultModel ? " (default)" : "";
         console.log(`  ${index + 1}. ${model}${isDefault}`);
       });
     });
@@ -92,17 +116,19 @@ function listModels(provider?: string): void {
 
 function setDefaultModel(provider: string, model: string): void {
   const config = loadCurrentConfig();
-  
+
   if (!config[provider]) {
     console.error(`❌ Provider '${provider}' not found`);
     process.exit(1);
   }
-  
+
   if (!config[provider].models.includes(model)) {
-    console.error(`❌ Model '${model}' not found for ${provider}. Available: ${config[provider].models.join(', ')}`);
+    console.error(
+      `❌ Model '${model}' not found for ${provider}. Available: ${config[provider].models.join(", ")}`
+    );
     process.exit(1);
   }
-  
+
   config[provider].defaultModel = model;
   console.log(`✅ Set '${model}' as default for ${provider}`);
   saveConfig(config);
@@ -136,7 +162,7 @@ Available providers: openai, anthropic, google, deepseek
 // Parse command line arguments
 const args = process.argv.slice(2);
 
-if (args.length === 0 || args[0] === 'help') {
+if (args.length === 0 || args[0] === "help") {
   showHelp();
   process.exit(0);
 }
@@ -144,30 +170,30 @@ if (args.length === 0 || args[0] === 'help') {
 const command = args[0];
 
 switch (command) {
-  case 'add':
+  case "add":
     if (args.length < 3) {
-      console.error('❌ Usage: add <provider> <model> [--default]');
+      console.error("❌ Usage: add <provider> <model> [--default]");
       process.exit(1);
     }
     const provider = args[1];
     const model = args[2];
-    const setAsDefault = args.includes('--default');
+    const setAsDefault = args.includes("--default");
     addModel(provider, model, setAsDefault);
     break;
-    
-  case 'list':
+
+  case "list":
     const listProvider = args[1];
     listModels(listProvider);
     break;
-    
-  case 'default':
+
+  case "default":
     if (args.length < 3) {
-      console.error('❌ Usage: default <provider> <model>');
+      console.error("❌ Usage: default <provider> <model>");
       process.exit(1);
     }
     setDefaultModel(args[1], args[2]);
     break;
-    
+
   default:
     console.error(`❌ Unknown command: ${command}`);
     showHelp();

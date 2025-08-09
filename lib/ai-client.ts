@@ -24,40 +24,62 @@ interface ProviderConfig {
 // Load provider configurations from JSON file
 function loadProviderConfigs(): Record<SupportedProvider, ProviderConfig> {
   try {
-    const configPath = path.join(process.cwd(), 'data', 'config', 'models.json');
-    const configData = fs.readFileSync(configPath, 'utf-8');
+    const configPath = path.join(
+      process.cwd(),
+      "data",
+      "config",
+      "models.json"
+    );
+    const configData = fs.readFileSync(configPath, "utf-8");
     const configs = JSON.parse(configData);
-    
+
     // Validate that all required providers are present
-    const requiredProviders: SupportedProvider[] = ["openai", "anthropic", "google", "deepseek"];
+    const requiredProviders: SupportedProvider[] = [
+      "openai",
+      "anthropic",
+      "google",
+      "deepseek",
+    ];
     for (const provider of requiredProviders) {
       if (!configs[provider]) {
-        console.warn(`Warning: Provider '${provider}' not found in config, using fallback`);
+        console.warn(
+          `Warning: Provider '${provider}' not found in config, using fallback`
+        );
       }
     }
-    
+
     return configs;
   } catch (error) {
-    console.warn('Failed to load models config, using fallback configuration:', error instanceof Error ? error.message : 'Unknown error');
+    console.warn(
+      "Failed to load models config, using fallback configuration:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return getFallbackConfigs();
   }
 }
 
 // Runtime model validation to warn about deprecated or experimental models
-function validateModelAtRuntime(provider: SupportedProvider, model: string): void {
+function validateModelAtRuntime(
+  provider: SupportedProvider,
+  model: string
+): void {
   const warnings = {
-    deprecated: ['gpt-3.5-turbo-0613', 'claude-2', 'claude-instant-v1'],
-    experimental: ['-preview-', '-exp', '-lite-preview-', '-experimental']
+    deprecated: ["gpt-3.5-turbo-0613", "claude-2", "claude-instant-v1"],
+    experimental: ["-preview-", "-exp", "-lite-preview-", "-experimental"],
   };
 
   // Check for deprecated models
-  if (warnings.deprecated.some(deprecated => model.includes(deprecated))) {
-    console.warn(`⚠️  Model '${model}' for ${provider} may be deprecated. Consider updating to a newer model.`);
+  if (warnings.deprecated.some((deprecated) => model.includes(deprecated))) {
+    console.warn(
+      `⚠️  Model '${model}' for ${provider} may be deprecated. Consider updating to a newer model.`
+    );
   }
 
   // Check for experimental models
-  if (warnings.experimental.some(exp => model.includes(exp))) {
-    console.warn(`🧪 Model '${model}' for ${provider} appears to be experimental. Monitor for changes.`);
+  if (warnings.experimental.some((exp) => model.includes(exp))) {
+    console.warn(
+      `🧪 Model '${model}' for ${provider} appears to be experimental. Monitor for changes.`
+    );
   }
 }
 
@@ -96,7 +118,8 @@ function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
 }
 
 // Provider configurations (loaded from config/models.json or fallback)
-export const providerConfigs: Record<SupportedProvider, ProviderConfig> = loadProviderConfigs();
+export const providerConfigs: Record<SupportedProvider, ProviderConfig> =
+  loadProviderConfigs();
 
 interface ApiKeyValidation {
   valid: boolean;
@@ -110,7 +133,9 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
 
   // Validate model is supported by provider
   if (!config.models.includes(selectedModel)) {
-    throw new Error(`Model ${selectedModel} not supported by ${config.name}. Available models: ${config.models.join(', ')}`);
+    throw new Error(
+      `Model ${selectedModel} not supported by ${config.name}. Available models: ${config.models.join(", ")}`
+    );
   }
 
   // Runtime validation: warn if model might be deprecated or experimental
