@@ -1,6 +1,6 @@
 // lib/ai-client.ts
 
-import { openai } from "@ai-sdk/openai";
+import { openai, createOpenAI } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
@@ -13,7 +13,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export type SupportedProvider = "openai" | "anthropic" | "google" | "deepseek";
+export type SupportedProvider = "openai" | "anthropic" | "google" | "deepseek" | "openrouter";
 
 interface ProviderConfig {
   name: string;
@@ -39,6 +39,7 @@ function loadProviderConfigs(): Record<SupportedProvider, ProviderConfig> {
       "anthropic",
       "google",
       "deepseek",
+      "openrouter",
     ];
     for (const provider of requiredProviders) {
       if (!configs[provider]) {
@@ -114,6 +115,11 @@ function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
       models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
       defaultModel: "deepseek-chat",
     },
+    openrouter: {
+      name: "OpenRouter",
+      models: ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "moonshotai/kimi-k2"],
+      defaultModel: "openai/gpt-4o",
+    },
   };
 }
 
@@ -171,6 +177,22 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
         );
       }
       return deepseek(selectedModel);
+    case "openrouter":
+      if (!process.env.OPENROUTER_API_KEY) {
+        throw new Error(
+          `Provider ${provider} is not configured (API key missing)`
+        );
+      }
+      // Create OpenRouter provider using createOpenAI with custom endpoint
+      const openrouterProvider = createOpenAI({
+        baseURL: "https://openrouter.ai/api/v1",
+        apiKey: process.env.OPENROUTER_API_KEY,
+        headers: {
+          "HTTP-Referer": "http://localhost:3000", // Optional: for including your app on openrouter.ai rankings
+          "X-Title": "AI Chat App", // Optional: shows in rankings on openrouter.ai
+        },
+      });
+      return openrouterProvider(selectedModel);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -185,6 +207,7 @@ export function validateApiKey(
     anthropic: process.env.ANTHROPIC_API_KEY,
     google: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     deepseek: process.env.DEEPSEEK_API_KEY,
+    openrouter: process.env.OPENROUTER_API_KEY,
   };
 
   const apiKey = keyMap[provider];
@@ -202,6 +225,10 @@ export function validateApiKey(
     return { valid: false, message: 'OpenAI API key should start with "sk-"' };
   }
 
+  if (provider === "openrouter" && !apiKey.startsWith("sk-or-")) {
+    return { valid: false, message: 'OpenRouter API key should start with "sk-or-"' };
+  }
+
   if (apiKey.length < 10) {
     return {
       valid: false,
@@ -215,7 +242,7 @@ export function validateApiKey(
 // Get available providers (only those with valid API keys)
 export function getAvailableProviders(): SupportedProvider[] {
   return (
-    ["openai", "anthropic", "google", "deepseek"] as SupportedProvider[]
+    ["openai", "anthropic", "google", "deepseek", "openrouter"] as SupportedProvider[]
   ).filter((provider) => validateApiKey(provider).valid);
 }
 
@@ -308,7 +335,7 @@ export function validateAllProviders(): Record<
   const results = {} as Record<SupportedProvider, ApiKeyValidation>;
 
   (
-    ["openai", "anthropic", "google", "deepseek"] as SupportedProvider[]
+    ["openai", "anthropic", "google", "deepseek", "openrouter"] as SupportedProvider[]
   ).forEach((provider) => {
     results[provider] = validateApiKey(provider);
   });
