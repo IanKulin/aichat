@@ -88,27 +88,18 @@ function loadModelsConfig(): Record<string, ProviderConfig> {
   }
 }
 
-// Runtime model validation to warn about deprecated or experimental models
+// Log warnings for experimental models
 function validateModelAtRuntime(
   provider: SupportedProvider,
   model: string
 ): void {
-  const warnings = {
-    deprecated: ["gpt-3.5-turbo-0613", "claude-2", "claude-instant-v1"],
-    experimental: ["-preview-", "-exp", "-lite-preview-", "-experimental"],
-  };
-
-  // Check for deprecated models
-  if (warnings.deprecated.some((deprecated) => model.includes(deprecated))) {
+  if (
+    model.includes("-preview-") ||
+    model.includes("-exp") ||
+    model.includes("-experimental")
+  ) {
     console.warn(
-      `⚠️  Model '${model}' for ${provider} may be deprecated. Consider updating to a newer model.`
-    );
-  }
-
-  // Check for experimental models
-  if (warnings.experimental.some((exp) => model.includes(exp))) {
-    console.warn(
-      `🧪 Model '${model}' for ${provider} appears to be experimental. Monitor for changes.`
+      `Model '${model}' for ${provider} appears to be experimental.`
     );
   }
 }
@@ -180,7 +171,6 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
   }
 }
 
-// Validate API key for a specific provider
 export function validateApiKey(
   provider: SupportedProvider = "openai"
 ): ApiKeyValidation {
@@ -193,35 +183,25 @@ export function validateApiKey(
   };
 
   const apiKey = keyMap[provider];
-  const providerName = providerConfigs[provider].name;
+  const providerConfig = providerConfigs[provider];
 
-  if (!apiKey) {
+  if (!providerConfig) {
     return {
       valid: false,
-      message: `${providerName} API key not found in environment variables`,
+      message: `Unknown provider: ${provider}`,
     };
   }
 
-  // Provider-specific validation
-  if (provider === "openai" && !apiKey.startsWith("sk-")) {
-    return { valid: false, message: 'OpenAI API key should start with "sk-"' };
-  }
+  const providerName = providerConfig.name;
 
-  if (provider === "openrouter" && !apiKey.startsWith("sk-or-")) {
+  if (!apiKey || apiKey.length < 10) {
     return {
       valid: false,
-      message: 'OpenRouter API key should start with "sk-or-"',
+      message: `${providerName} API key not configured`,
     };
   }
 
-  if (apiKey.length < 10) {
-    return {
-      valid: false,
-      message: `${providerName} API key appears to be too short`,
-    };
-  }
-
-  return { valid: true, message: `${providerName} API key format looks valid` };
+  return { valid: true, message: `${providerName} API key configured` };
 }
 
 // Get provider configuration

@@ -4,14 +4,16 @@ This file provides guidance to developers when working with code in this reposit
 
 ## Project Overview
 
-This is a Node.js/Express web application that provides a chat interface for interacting with multiple AI providers (OpenAI, Anthropic, Google, DeepSeek). It's a server-side rendered application with a single-page frontend that makes API calls to various AI services.
+This is a Node.js/Express web application that provides a chat interface for interacting with multiple AI providers (OpenAI, Anthropic, Google, DeepSeek, OpenRouter). It's a server-side rendered application with a single-page frontend that makes API calls to various AI services.
 
 ## Architecture
 
 - **Backend**: Express.js server (`server.ts`) that handles API routes and serves static files
 - **Frontend**: Single HTML file (`public/index.html`) with embedded CSS and JavaScript
 - **API Client**: AI SDK integration module (`lib/ai-client.ts`) that handles multi-provider API communication using Vercel AI SDK
-- **Configuration**: Environment variables managed via `.env` file and dotenv package
+- **Configuration**: 
+  - Environment variables managed via `.env` file and dotenv package
+  - Model configurations stored in `data/config/models.json`
 
 ## Development Commands
 
@@ -21,26 +23,30 @@ This is a Node.js/Express web application that provides a chat interface for int
 - `npm run format` - Prettier formatting
 - `npm test` - Tests using Node built in test runner without using API tokens
 - `npm run sanity-check` - calls each of the providers
+- `npm run typecheck` - TypeScript type checking
 
 ## Environment Setup
 
-Required environment variables:
+Required environment variables (at least one must be set):
 - `OPENAI_API_KEY`
 - `GOOGLE_GENERATIVE_AI_API_KEY`
 - `ANTHROPIC_API_KEY`
 - `DEEPSEEK_API_KEY`
+- `OPENROUTER_API_KEY`
 - `PORT`: Optional, defaults to 3000
 
 ## API Endpoints
 
 - `GET /`: Serves the main chat interface
-- `POST /api/chat`: Handles chat messages (expects `{ messages: Array }`)
+- `POST /api/chat`: Handles chat messages (expects `{ messages: Array, provider?: string, model?: string }`)
+- `GET /api/providers`: Returns available providers and their models
 - `GET /api/health`: Health check endpoint with API key validation status
 
 ## Frontend Architecture
 
 The frontend is a single html page with:
 - Conversation history stored in memory (`conversationHistory` array)
+- Provider and model selection dropdowns with localStorage persistence
 - Dark mode support via CSS media queries
 - Responsive design for mobile devices
 - Auto-resizing textarea for message input
@@ -50,16 +56,33 @@ The frontend is a single html page with:
 
 - Full conversation context is maintained and sent to providers
 - Uses the Vercel AI SDK to abstract calls to multiple providers
+- Dynamic provider/model selection with user preference persistence
+- Simplified error handling and API key validation
 
 ## Code Structure
 
 - `server.ts`: Main Express server with middleware, routes, and error handling
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
+- `lib/logger.ts`: Simple logging wrapper using @iankulin/logger
 - `public/index.html`: Complete frontend with HTML, CSS, and JavaScript
+- `data/config/models.json`: Provider and model configuration
+
+## Configuration Management
+
+Model configurations are stored in `data/config/models.json` with the following structure:
+```json
+{
+  "provider_id": {
+    "name": "Display Name",
+    "models": ["model1", "model2"],
+    "defaultModel": "model1"
+  }
+}
+```
 
 ## Security Considerations
 
-- API key validation on startup
+- API key validation on startup with simplified format checking
 - Error messages sanitized to prevent exposure of internal details
 - CORS not explicitly configured (defaults to same-origin)
 - No authentication system - this is a basic application intended for self-hosting on local networks
@@ -79,3 +102,11 @@ At the conclusion of any change, run and fix:
 - `npm run typecheck`
 - `npm run lint`
 - `npm run format`
+
+## Recent Improvements
+
+- **Simplified API key validation**: Removed overly complex format checking, now just validates presence and minimum length
+- **Eliminated duplicate interfaces**: `ChatMessage` interface now only defined in `lib/ai-client.ts`
+- **Streamlined error handling**: Consolidated error message sanitization into a single function
+- **Updated model configurations**: Refreshed with current model names and better defaults
+- **Added missing data directory**: Created proper structure for configuration files

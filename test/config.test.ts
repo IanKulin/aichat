@@ -27,8 +27,8 @@ describe('Configuration Tests', () => {
       
       // Test that core models are present (but allow for additional models)
       assert.ok(openaiConfig.models.some(model => model.includes('gpt')), 'OpenAI should have GPT models')
-      assert.ok(openaiConfig.models.includes('gpt-3.5-turbo'), 'OpenAI should include gpt-3.5-turbo')
-      assert.strictEqual(openaiConfig.defaultModel, 'gpt-3.5-turbo')
+      assert.ok(openaiConfig.models.includes('gpt-4o-mini'), 'OpenAI should include gpt-4o-mini')
+      assert.strictEqual(openaiConfig.defaultModel, 'gpt-4o-mini')
     })
 
     test('should have expected core models for Google', () => {
@@ -36,8 +36,8 @@ describe('Configuration Tests', () => {
       
       // Test that core models are present (but allow for additional models)
       assert.ok(googleConfig.models.some(model => model.includes('gemini')), 'Google should have Gemini models')
-      assert.ok(googleConfig.models.includes('gemini-2.5-flash'), 'Google should include gemini-2.5-flash')
-      assert.strictEqual(googleConfig.defaultModel, 'gemini-2.5-flash')
+      assert.ok(googleConfig.models.includes('gemini-1.5-flash'), 'Google should include gemini-1.5-flash')
+      assert.strictEqual(googleConfig.defaultModel, 'gemini-1.5-flash')
     })
 
     test('should have expected core models for Anthropic', () => {
@@ -45,8 +45,8 @@ describe('Configuration Tests', () => {
       
       // Test that core models are present (but allow for additional models)
       assert.ok(anthropicConfig.models.some(model => model.includes('claude')), 'Anthropic should have Claude models')
-      assert.ok(anthropicConfig.models.includes('claude-3-haiku-20240307'), 'Anthropic should include claude-3-haiku-20240307')
-      assert.strictEqual(anthropicConfig.defaultModel, 'claude-3-haiku-20240307')
+      assert.ok(anthropicConfig.models.includes('claude-3-5-haiku-20241022'), 'Anthropic should include claude-3-5-haiku-20241022')
+      assert.strictEqual(anthropicConfig.defaultModel, 'claude-3-5-haiku-20241022')
     })
 
     test('should have expected core models for DeepSeek', () => {

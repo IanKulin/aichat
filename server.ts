@@ -9,6 +9,7 @@ import {
   getProviderConfig,
   providerConfigs,
   type SupportedProvider,
+  type ChatMessage,
 } from "./lib/ai-client.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,15 +21,27 @@ export const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Type definitions
-interface ChatMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
 interface ChatRequest {
   messages: ChatMessage[];
   provider?: string;
   model?: string;
+}
+
+// Error handling
+function getClientErrorMessage(error: Error): string {
+  const message = error.message.toLowerCase();
+
+  if (message.includes("api key")) {
+    return "Service configuration error. Please try again later.";
+  }
+  if (message.includes("network")) {
+    return "Network error. Please check your connection and try again.";
+  }
+  if (message.includes("model")) {
+    return "Selected model is not available. Please try a different model.";
+  }
+
+  return "Sorry, I'm having trouble processing your request right now.";
 }
 
 // Middleware
@@ -110,21 +123,7 @@ app.post("/api/chat", async (req, res) => {
   } catch (error) {
     logger.error("Error in /api/chat:", (error as Error).message);
 
-    // Don't expose internal error details to client
-    let clientError =
-      "Sorry, I'm having trouble processing your request right now.";
-
-    if ((error as Error).message.includes("API key")) {
-      clientError = "Service configuration error. Please try again later.";
-    } else if ((error as Error).message.includes("Network error")) {
-      clientError =
-        "Network error. Please check your connection and try again.";
-    } else if ((error as Error).message.includes("API error")) {
-      clientError = "AI service is temporarily unavailable. Please try again.";
-    } else if ((error as Error).message.includes("Model error")) {
-      clientError =
-        "Selected model is not available. Please try a different model.";
-    }
+    const clientError = getClientErrorMessage(error as Error);
 
     res.status(500).json({
       error: "Service Error",
