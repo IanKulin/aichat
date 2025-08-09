@@ -40,7 +40,8 @@
       "Bash(cp:*)",
       "Bash(npx @ai-sdk/codemod:*)",
       "Bash(/bashes)",
-      "mcp__playwright__playwright_press_key"
+      "mcp__playwright__playwright_press_key",
+      "mcp__playwright__playwright_get_visible_html"
     ],
     "deny": []
   }
