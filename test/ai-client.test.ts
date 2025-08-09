@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { validateApiKey, getAvailableProviders, getProviderConfig, validateAllProviders } from '../lib/ai-client.ts'
+import { validateApiKey, getProviderConfig, validateAllProviders } from '../lib/ai-client.ts'
 
 describe('AI Client Tests', () => {
   describe('validateApiKey()', () => {
@@ -103,48 +103,6 @@ describe('AI Client Tests', () => {
     test('should return undefined for unknown provider', () => {
       const config = getProviderConfig('unknown' as any)
       assert.strictEqual(config, undefined)
-    })
-  })
-
-  describe('getAvailableProviders()', () => {
-    test('should return providers with valid API keys', () => {
-      process.env.OPENAI_API_KEY = 'sk-validkey123456'
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'valid-google-key123456'
-      delete process.env.ANTHROPIC_API_KEY
-      delete process.env.DEEPSEEK_API_KEY
-
-      const providers = getAvailableProviders()
-      assert.strictEqual(providers.includes('openai'), true)
-      assert.strictEqual(providers.includes('google'), true)
-      assert.strictEqual(providers.includes('anthropic'), false)
-      assert.strictEqual(providers.includes('deepseek'), false)
-    })
-
-    test('should return empty array when no API keys are valid', () => {
-      delete process.env.OPENAI_API_KEY
-      delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
-      delete process.env.ANTHROPIC_API_KEY
-      delete process.env.DEEPSEEK_API_KEY
-      delete process.env.OPENROUTER_API_KEY
-
-      const providers = getAvailableProviders()
-      assert.strictEqual(providers.length, 0)
-    })
-
-    test('should return all providers when all API keys are valid', () => {
-      process.env.OPENAI_API_KEY = 'sk-validkey123456'
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'valid-google-key123456'
-      process.env.ANTHROPIC_API_KEY = 'valid-anthropic-key123456'
-      process.env.DEEPSEEK_API_KEY = 'valid-deepseek-key123456'
-      process.env.OPENROUTER_API_KEY = 'sk-or-valid-openrouter-key123456'
-
-      const providers = getAvailableProviders()
-      assert.strictEqual(providers.length, 5)
-      assert.strictEqual(providers.includes('openai'), true)
-      assert.strictEqual(providers.includes('google'), true)
-      assert.strictEqual(providers.includes('anthropic'), true)
-      assert.strictEqual(providers.includes('deepseek'), true)
-      assert.strictEqual(providers.includes('openrouter'), true)
     })
   })
 

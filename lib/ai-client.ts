@@ -27,8 +27,42 @@ interface ProviderConfig {
   defaultModel: string;
 }
 
+interface ModelsConfig {
+  [key: string]: ProviderConfig;
+}
+
+function validateModelsJson(
+  data: Record<string, unknown>
+): data is ModelsConfig {
+  const requiredProviders: SupportedProvider[] = [
+    "openai",
+    "anthropic",
+    "google",
+    "deepseek",
+    "openrouter",
+  ];
+
+  for (const provider of requiredProviders) {
+    if (!data[provider]) {
+      throw new Error(`Missing required provider: ${provider}`);
+    }
+
+    const config = data[provider] as ProviderConfig;
+    if (!config.name || !Array.isArray(config.models) || !config.defaultModel) {
+      throw new Error(`Invalid configuration for provider: ${provider}`);
+    }
+
+    if (!config.models.includes(config.defaultModel)) {
+      throw new Error(
+        `Default model ${config.defaultModel} not in models list for ${provider}`
+      );
+    }
+  }
+  return true;
+}
+
 // Load provider configurations from JSON file
-function loadProviderConfigs(): Record<SupportedProvider, ProviderConfig> {
+function loadModelsConfig(): Record<string, ProviderConfig> {
   try {
     const configPath = path.join(
       process.cwd(),
@@ -39,29 +73,18 @@ function loadProviderConfigs(): Record<SupportedProvider, ProviderConfig> {
     const configData = fs.readFileSync(configPath, "utf-8");
     const configs = JSON.parse(configData);
 
-    // Validate that all required providers are present
-    const requiredProviders: SupportedProvider[] = [
-      "openai",
-      "anthropic",
-      "google",
-      "deepseek",
-      "openrouter",
-    ];
-    for (const provider of requiredProviders) {
-      if (!configs[provider]) {
-        console.warn(
-          `Warning: Provider '${provider}' not found in config, using fallback`
-        );
-      }
-    }
+    validateModelsJson(configs);
 
     return configs;
   } catch (error) {
-    console.warn(
-      "Failed to load models config, using fallback configuration:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    return getFallbackConfigs();
+    if (error instanceof Error) {
+      console.error("FATAL: Invalid models.json configuration:", error.message);
+    } else {
+      console.error(
+        "FATAL: An unknown error occurred while loading configuration."
+      );
+    }
+    process.exit(1);
   }
 }
 
@@ -90,58 +113,8 @@ function validateModelAtRuntime(
   }
 }
 
-// Fallback configurations (same as original hardcoded values)
-function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
-  return {
-    openai: {
-      name: "OpenAI",
-      models: ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
-      defaultModel: "gpt-3.5-turbo",
-    },
-    anthropic: {
-      name: "Anthropic",
-      models: [
-        "claude-3-haiku-20240307",
-        "claude-3-7-sonnet-20250219",
-        "claude-sonnet-4-20250514",
-      ],
-      defaultModel: "claude-3-haiku-20240307",
-    },
-    google: {
-      name: "Google",
-      models: [
-        "gemini-2.5-flash-lite-preview-06-17",
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-      ],
-      defaultModel: "gemini-2.5-flash",
-    },
-    deepseek: {
-      name: "DeepSeek",
-      models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
-      defaultModel: "deepseek-chat",
-    },
-    openrouter: {
-      name: "OpenRouter",
-      models: [
-        "anthropic/claude-3.7-sonnet",
-        "anthropic/claude-3.5-sonnet",
-        "openai/gpt-4.1",
-        "openai/gpt-4o",
-        "google/gemini-2.0-flash",
-        "deepseek/deepseek-chat",
-        "anthropic/claude-3-haiku",
-        "openai/gpt-4o-mini",
-        "google/gemini-2.0-flash-001",
-      ],
-      defaultModel: "anthropic/claude-3.5-sonnet",
-    },
-  };
-}
-
 // Provider configurations (loaded from config/models.json or fallback)
-export const providerConfigs: Record<SupportedProvider, ProviderConfig> =
-  loadProviderConfigs();
+export const providerConfigs = loadModelsConfig();
 
 interface ApiKeyValidation {
   valid: boolean;
@@ -156,7 +129,9 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
   // Validate model is supported by provider
   if (!config.models.includes(selectedModel)) {
     throw new Error(
-      `Model ${selectedModel} not supported by ${config.name}. Available models: ${config.models.join(", ")}`
+      `Model ${selectedModel} not supported by ${
+        config.name
+      }. Available models: ${config.models.join(", ")}`
     );
   }
 
@@ -247,19 +222,6 @@ export function validateApiKey(
   }
 
   return { valid: true, message: `${providerName} API key format looks valid` };
-}
-
-// Get available providers (only those with valid API keys)
-export function getAvailableProviders(): SupportedProvider[] {
-  return (
-    [
-      "openai",
-      "anthropic",
-      "google",
-      "deepseek",
-      "openrouter",
-    ] as SupportedProvider[]
-  ).filter((provider) => validateApiKey(provider).valid);
 }
 
 // Get provider configuration

@@ -1,13 +1,19 @@
 // scripts/sanity-check.ts
 
 import "dotenv/config";
-import { sendMessage, getAvailableProviders } from "../lib/ai-client.ts";
+import {
+  sendMessage,
+  providerConfigs,
+  type SupportedProvider,
+} from "../lib/ai-client.ts";
 import { logger } from "../lib/logger.ts";
 
 async function runSanityCheck() {
   logger.info("Starting AI provider sanity check...");
 
-  const availableProviders = getAvailableProviders();
+  const availableProviders = Object.keys(
+    providerConfigs
+  ) as SupportedProvider[];
 
   if (availableProviders.length === 0) {
     logger.warn(

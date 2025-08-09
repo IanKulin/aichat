@@ -5,7 +5,6 @@ import { dirname, join } from "path";
 import { logger } from "./lib/logger.ts";
 import {
   sendMessage,
-  getAvailableProviders,
   validateAllProviders,
   getProviderConfig,
   providerConfigs,
@@ -38,7 +37,7 @@ app.use(express.static(join(__dirname, "public")));
 
 // Validate API keys on startup
 const providerValidations = validateAllProviders();
-const availableProviders = getAvailableProviders();
+const availableProviders = Object.keys(providerConfigs) as SupportedProvider[];
 
 Object.entries(providerValidations).forEach(([provider, validation]) => {
   if (!validation.valid) {
@@ -136,8 +135,6 @@ app.post("/api/chat", async (req, res) => {
 
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
-  const availableProviders = getAvailableProviders();
-
   const providersData = availableProviders.map((provider) => ({
     id: provider,
     name: providerConfigs[provider].name,
@@ -154,7 +151,9 @@ app.get("/api/providers", (req, res) => {
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   const providerValidations = validateAllProviders();
-  const availableProviders = getAvailableProviders();
+  const availableProviders = Object.keys(
+    providerConfigs
+  ) as SupportedProvider[];
 
   res.json({
     status: "ok",
