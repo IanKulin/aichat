@@ -1,9 +1,10 @@
 // lib/ai-client.ts
 
-import { openai, createOpenAI } from "@ai-sdk/openai";
+import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
+import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText, streamText } from "ai";
 import fs from "fs";
 import path from "path";
@@ -123,11 +124,17 @@ function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
     openrouter: {
       name: "OpenRouter",
       models: [
-        "openai/gpt-4o",
+        "anthropic/claude-3.7-sonnet",
         "anthropic/claude-3.5-sonnet",
-        "moonshotai/kimi-k2",
+        "openai/gpt-4.1",
+        "openai/gpt-4o",
+        "google/gemini-2.0-flash",
+        "deepseek/deepseek-chat",
+        "anthropic/claude-3-haiku",
+        "openai/gpt-4o-mini",
+        "google/gemini-2.0-flash-001",
       ],
-      defaultModel: "openai/gpt-4o",
+      defaultModel: "anthropic/claude-3.5-sonnet",
     },
   };
 }
@@ -192,16 +199,7 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
           `Provider ${provider} is not configured (API key missing)`
         );
       }
-      // Create OpenRouter provider using createOpenAI with custom endpoint
-      const openrouterProvider = createOpenAI({
-        baseURL: "https://openrouter.ai/api/v1",
-        apiKey: process.env.OPENROUTER_API_KEY,
-        headers: {
-          "HTTP-Referer": "http://localhost:3000", // Optional: for including your app on openrouter.ai rankings
-          "X-Title": "AI Chat App", // Optional: shows in rankings on openrouter.ai
-        },
-      });
-      return openrouterProvider(selectedModel);
+      return openrouter(selectedModel);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }

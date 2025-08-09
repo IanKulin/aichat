@@ -125,6 +125,7 @@ describe('AI Client Tests', () => {
       delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
       delete process.env.ANTHROPIC_API_KEY
       delete process.env.DEEPSEEK_API_KEY
+      delete process.env.OPENROUTER_API_KEY
 
       const providers = getAvailableProviders()
       assert.strictEqual(providers.length, 0)
@@ -135,13 +136,15 @@ describe('AI Client Tests', () => {
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'valid-google-key123456'
       process.env.ANTHROPIC_API_KEY = 'valid-anthropic-key123456'
       process.env.DEEPSEEK_API_KEY = 'valid-deepseek-key123456'
+      process.env.OPENROUTER_API_KEY = 'sk-or-valid-openrouter-key123456'
 
       const providers = getAvailableProviders()
-      assert.strictEqual(providers.length, 4)
+      assert.strictEqual(providers.length, 5)
       assert.strictEqual(providers.includes('openai'), true)
       assert.strictEqual(providers.includes('google'), true)
       assert.strictEqual(providers.includes('anthropic'), true)
       assert.strictEqual(providers.includes('deepseek'), true)
+      assert.strictEqual(providers.includes('openrouter'), true)
     })
   })
 
