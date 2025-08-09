@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to developers when working with code in this repository.
 
 ## Project Overview
 
@@ -71,3 +71,11 @@ The frontend is a single html page with:
 - assume a MacOS environment for CLI tools
 - Playwright MCP is available for screenshots of the UI
 - If you start a background process for testing, kill it before handing back to the user
+
+## Code quality
+
+At the conclusion of any change, run and fix:
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run format`
