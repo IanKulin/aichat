@@ -30,7 +30,10 @@
       "mcp__playwright__playwright_click",
       "mcp__playwright__playwright_close",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "WebFetch(domain:sdk.vercel.ai)",
+      "WebFetch(domain:platform.openai.com)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   }
