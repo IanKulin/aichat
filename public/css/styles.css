@@ -103,7 +103,13 @@ body {
 }
 
 /* Layout Components */
-.header {
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -113,18 +119,18 @@ body {
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.header-left {
+header .header-left {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
 
-.header-right {
+header nav {
   display: flex;
   align-items: center;
 }
 
-.chat-container {
+main section {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-xl);
@@ -133,7 +139,7 @@ body {
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.input-container {
+main form {
   padding: var(--spacing-lg) var(--spacing-xl);
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
@@ -144,7 +150,7 @@ body {
 }
 
 /* Typography */
-.title {
+header h1 {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -348,19 +354,19 @@ body {
     max-width: 90%;
   }
 
-  .input-container {
+  main form {
     padding: var(--spacing-md) var(--spacing-lg);
   }
 
-  .chat-container {
+  main section {
     padding: var(--spacing-lg);
   }
 
-  .header {
+  header {
     padding: var(--spacing-md) var(--spacing-lg);
   }
 
-  .header-left {
+  header .header-left {
     gap: var(--spacing-sm);
   }
 
@@ -375,7 +381,7 @@ body {
     min-width: 80px;
   }
 
-  .title {
+  header h1 {
     font-size: 16px;
   }
 

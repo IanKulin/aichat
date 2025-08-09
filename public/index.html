@@ -9,41 +9,62 @@
     <link rel="stylesheet" href="css/github-dark.css" media="(prefers-color-scheme: dark)">
     <script src="js/highlight.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
   </head>
   <body>
-    <div class="header">
+    <header>
       <div class="header-left">
-        <button class="new-chat-button" id="newChatButton">New Chat</button>
+        <button class="new-chat-button" id="newChatButton" aria-label="Start a new conversation">New Chat</button>
       </div>
-      <div class="title">Chat Interface</div>
-      <div class="header-right">
+      <h1>Chat Interface</h1>
+      <nav aria-label="Provider and model selection">
         <div class="provider-controls">
-          <select class="provider-select" id="providerSelect">
+          <label for="providerSelect" class="sr-only">Select AI Provider</label>
+          <select class="provider-select" id="providerSelect" aria-label="Select AI provider">
             <option value="">Loading...</option>
           </select>
-          <select class="model-select" id="modelSelect">
+          <label for="modelSelect" class="sr-only">Select AI Model</label>
+          <select class="model-select" id="modelSelect" aria-label="Select AI model">
             <option value="">Select model...</option>
           </select>
         </div>
-      </div>
-    </div>
-    <div class="chat-container" id="chatContainer">
-      <div class="message system">
-        Welcome! Start a conversation by typing a message below.
-      </div>
-    </div>
+      </nav>
+    </header>
+    
+    <main>
+      <section id="chatContainer" role="log" aria-live="polite" aria-label="Conversation history">
+        <div class="message system">
+          Welcome! Start a conversation by typing a message below.
+        </div>
+      </section>
 
-    <div class="input-container">
-      <textarea
-        class="message-input"
-        id="messageInput"
-        placeholder="Type your message..."
-        rows="1"
-      ></textarea>
-      <button class="send-button" id="sendButton" type="button">➤</button>
-    </div>
+      <form aria-label="Send message">
+        <label for="messageInput" class="sr-only">Type your message</label>
+        <textarea
+          class="message-input"
+          id="messageInput"
+          placeholder="Type your message..."
+          rows="1"
+          aria-describedby="sendButton"
+          required
+        ></textarea>
+        <button class="send-button" id="sendButton" type="submit" aria-label="Send message">➤</button>
+      </form>
+    </main>
 
-    <div class="loading" id="loadingIndicator">AI is thinking...</div>
+    <div class="loading" id="loadingIndicator" role="status" aria-live="polite">AI is thinking...</div>
 
     <script>
       // Initialize highlight.js
@@ -78,8 +99,17 @@
         }
       });
 
-      // Send button click handler
-      sendButton.addEventListener("click", sendMessage);
+      // Send button click handler and form submission
+      sendButton.addEventListener("click", function(e) {
+        e.preventDefault();
+        sendMessage();
+      });
+      
+      // Handle form submission
+      document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendMessage();
+      });
 
       function addMessage(content, type = "user", metadata = null) {
         const messageDiv = document.createElement("div");
