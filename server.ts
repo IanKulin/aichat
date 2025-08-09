@@ -11,6 +11,12 @@ import {
   type ChatMessage,
 } from "./lib/ai-client.ts";
 import { getProviderService } from "./lib/services.ts";
+import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
+import {
+  validateChatRequest,
+  validateJsonBody,
+} from "./middleware/validation.ts";
+import { requestLogger, chatLogger } from "./middleware/logging.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,26 +33,12 @@ interface ChatRequest {
   model?: string;
 }
 
-// Error handling
-function getClientErrorMessage(error: Error): string {
-  const message = error.message.toLowerCase();
-
-  if (message.includes("api key")) {
-    return "Service configuration error. Please try again later.";
-  }
-  if (message.includes("network")) {
-    return "Network error. Please check your connection and try again.";
-  }
-  if (message.includes("model")) {
-    return "Selected model is not available. Please try a different model.";
-  }
-
-  return "Sorry, I'm having trouble processing your request right now.";
-}
-
 // Middleware
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
+app.use(validateJsonBody);
+app.use(requestLogger);
+app.use(chatLogger);
 
 // Validate API keys on startup
 const providerService = getProviderService();
@@ -70,31 +62,14 @@ if (availableProviders.length === 0) {
 }
 
 // Chat endpoint with multi-provider support
-app.post("/api/chat", async (req, res) => {
-  try {
+app.post(
+  "/api/chat",
+  validateChatRequest,
+  asyncHandler(async (req, res) => {
     const { messages, provider, model }: ChatRequest = req.body;
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "Messages array is required" });
-    }
-
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage || !lastMessage.content) {
-      return res.status(400).json({ error: "Last message must have content" });
-    }
-
-    // Validate provider if specified
+    // Default provider selection
     const selectedProvider = provider || "openai";
-    if (!providerService.validateProvider(selectedProvider)) {
-      return res.status(400).json({
-        error: "Invalid provider",
-        message: `Provider '${selectedProvider}' is not available. Available providers: ${availableProviders.join(", ")}`,
-      });
-    }
-
-    logger.debug(
-      `Received conversation with ${messages.length} messages for provider: ${selectedProvider}`
-    );
 
     // Get the actual model that will be used
     const providerConfig = getProviderConfig(
@@ -109,11 +84,6 @@ app.post("/api/chat", async (req, res) => {
       actualModel
     );
 
-    logger.debug(
-      `${selectedProvider} (${actualModel}) response length:`,
-      aiResponse.length
-    );
-
     res.json({
       response: aiResponse,
       timestamp: new Date().toISOString(),
@@ -121,17 +91,8 @@ app.post("/api/chat", async (req, res) => {
       providerName: providerConfig.name,
       model: actualModel,
     });
-  } catch (error) {
-    logger.error("Error in /api/chat:", (error as Error).message);
-
-    const clientError = getClientErrorMessage(error as Error);
-
-    res.status(500).json({
-      error: "Service Error",
-      message: clientError,
-    });
-  }
-});
+  })
+);
 
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
@@ -163,14 +124,7 @@ app.get("/", (req, res) => {
 });
 
 // Error handling middleware
-app.use((error, req, res, next) => {
-  logger.error("Unhandled error:", error);
-  res.status(500).json({
-    error: "Internal server error",
-    message: "Something went wrong",
-  });
-  next();
-});
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   logger.info(`Server running on http://localhost:${PORT}`);

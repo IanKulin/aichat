@@ -38,7 +38,8 @@
       "mcp__playwright__playwright_select",
       "WebFetch(domain:vercel.com)",
       "Bash(cp:*)",
-      "Bash(npx @ai-sdk/codemod:*)"
+      "Bash(npx @ai-sdk/codemod:*)",
+      "Bash(/bashes)"
     ],
     "deny": []
   }
