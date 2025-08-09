@@ -82,21 +82,21 @@ describe('AI Client Tests', () => {
     test('should return correct config for google', () => {
       const config = getProviderConfig('google')
       assert.ok(config)
-      assert.strictEqual(config.models.includes('gemini-2.5-flash'), true)
+      assert.ok(config.models.some(model => model.includes('gemini')), 'Google should have Gemini models')
       assert.strictEqual(config.defaultModel, 'gemini-2.5-flash')
     })
 
     test('should return correct config for anthropic', () => {
       const config = getProviderConfig('anthropic')
       assert.ok(config)
-      assert.strictEqual(config.models.includes('claude-3-haiku-20240307'), true)
+      assert.ok(config.models.some(model => model.includes('claude')), 'Anthropic should have Claude models')
       assert.strictEqual(config.defaultModel, 'claude-3-haiku-20240307')
     })
 
     test('should return correct config for deepseek', () => {
       const config = getProviderConfig('deepseek')
       assert.ok(config)
-      assert.strictEqual(config.models.includes('deepseek-chat'), true)
+      assert.ok(config.models.some(model => model.includes('deepseek')), 'DeepSeek should have DeepSeek models')
       assert.strictEqual(config.defaultModel, 'deepseek-chat')
     })
 

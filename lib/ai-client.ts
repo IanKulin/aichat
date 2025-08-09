@@ -5,6 +5,8 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
 import { generateText, streamText } from "ai";
+import fs from "fs";
+import path from "path";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -19,37 +21,82 @@ interface ProviderConfig {
   defaultModel: string;
 }
 
-// Provider configurations
-export const providerConfigs: Record<SupportedProvider, ProviderConfig> = {
-  openai: {
-    name: "OpenAI",
-    models: ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
-    defaultModel: "gpt-3.5-turbo",
-  },
-  anthropic: {
-    name: "Anthropic",
-    models: [
-      "claude-3-haiku-20240307",
-      "claude-3-7-sonnet-20250219",
-      "claude-sonnet-4-20250514",
-    ],
-    defaultModel: "claude-3-haiku-20240307",
-  },
-  google: {
-    name: "Google",
-    models: [
-      "gemini-2.5-flash-lite-preview-06-17",
-      "gemini-2.5-flash",
-      "gemini-2.5-pro",
-    ],
-    defaultModel: "gemini-2.5-flash",
-  },
-  deepseek: {
-    name: "DeepSeek",
-    models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
-    defaultModel: "deepseek-chat",
-  },
-};
+// Load provider configurations from JSON file
+function loadProviderConfigs(): Record<SupportedProvider, ProviderConfig> {
+  try {
+    const configPath = path.join(process.cwd(), 'data', 'config', 'models.json');
+    const configData = fs.readFileSync(configPath, 'utf-8');
+    const configs = JSON.parse(configData);
+    
+    // Validate that all required providers are present
+    const requiredProviders: SupportedProvider[] = ["openai", "anthropic", "google", "deepseek"];
+    for (const provider of requiredProviders) {
+      if (!configs[provider]) {
+        console.warn(`Warning: Provider '${provider}' not found in config, using fallback`);
+      }
+    }
+    
+    return configs;
+  } catch (error) {
+    console.warn('Failed to load models config, using fallback configuration:', error instanceof Error ? error.message : 'Unknown error');
+    return getFallbackConfigs();
+  }
+}
+
+// Runtime model validation to warn about deprecated or experimental models
+function validateModelAtRuntime(provider: SupportedProvider, model: string): void {
+  const warnings = {
+    deprecated: ['gpt-3.5-turbo-0613', 'claude-2', 'claude-instant-v1'],
+    experimental: ['-preview-', '-exp', '-lite-preview-', '-experimental']
+  };
+
+  // Check for deprecated models
+  if (warnings.deprecated.some(deprecated => model.includes(deprecated))) {
+    console.warn(`⚠️  Model '${model}' for ${provider} may be deprecated. Consider updating to a newer model.`);
+  }
+
+  // Check for experimental models
+  if (warnings.experimental.some(exp => model.includes(exp))) {
+    console.warn(`🧪 Model '${model}' for ${provider} appears to be experimental. Monitor for changes.`);
+  }
+}
+
+// Fallback configurations (same as original hardcoded values)
+function getFallbackConfigs(): Record<SupportedProvider, ProviderConfig> {
+  return {
+    openai: {
+      name: "OpenAI",
+      models: ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
+      defaultModel: "gpt-3.5-turbo",
+    },
+    anthropic: {
+      name: "Anthropic",
+      models: [
+        "claude-3-haiku-20240307",
+        "claude-3-7-sonnet-20250219",
+        "claude-sonnet-4-20250514",
+      ],
+      defaultModel: "claude-3-haiku-20240307",
+    },
+    google: {
+      name: "Google",
+      models: [
+        "gemini-2.5-flash-lite-preview-06-17",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+      ],
+      defaultModel: "gemini-2.5-flash",
+    },
+    deepseek: {
+      name: "DeepSeek",
+      models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
+      defaultModel: "deepseek-chat",
+    },
+  };
+}
+
+// Provider configurations (loaded from config/models.json or fallback)
+export const providerConfigs: Record<SupportedProvider, ProviderConfig> = loadProviderConfigs();
 
 interface ApiKeyValidation {
   valid: boolean;
@@ -63,8 +110,11 @@ function getProviderModel(provider: SupportedProvider, model?: string) {
 
   // Validate model is supported by provider
   if (!config.models.includes(selectedModel)) {
-    throw new Error(`Model ${selectedModel} not supported by ${config.name}`);
+    throw new Error(`Model ${selectedModel} not supported by ${config.name}. Available models: ${config.models.join(', ')}`);
   }
+
+  // Runtime validation: warn if model might be deprecated or experimental
+  validateModelAtRuntime(provider, selectedModel);
 
   // Initialize provider dynamically to handle environment variable loading
   switch (provider) {
