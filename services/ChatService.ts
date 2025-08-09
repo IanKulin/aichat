@@ -1,8 +1,19 @@
 // services/ChatService.ts - Chat processing service
 
 import { generateText, streamText } from "ai";
+import { marked } from "marked";
+import hljs from "highlight.js";
 import { ProviderService } from "./ProviderService.ts";
 import { ConfigService } from "./ConfigService.ts";
+
+// Configure marked with highlight.js
+marked.setOptions({
+  highlight: function(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    return hljs.highlight(code, { language }).value;
+  },
+  langPrefix: 'hljs language-',
+} as any);
 
 // Re-declare types locally to avoid import issues with Node.js strip-types
 export type SupportedProvider =
@@ -82,8 +93,11 @@ export class DefaultChatService extends ChatService {
         temperature: 0.7,
       });
 
+      // Convert markdown response to HTML with syntax highlighting
+      const htmlResponse = await marked(result.text);
+
       return {
-        response: result.text,
+        response: htmlResponse,
         timestamp: new Date().toISOString(),
         provider: selectedProvider,
         providerName: providerConfig.name,
