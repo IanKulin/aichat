@@ -4,6 +4,9 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
+    ignores: ["**/*.min.js", "public/js/**/*.js", "public/css/**"],
+  },
+  {
     files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
