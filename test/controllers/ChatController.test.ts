@@ -15,12 +15,12 @@ describe('ChatController Tests', () => {
   const setupController = () => {
     // Create mock services
     mockChatService = {
-      processMessage: async (messages, provider, model) => ({
+      processMessage: async (_messages, _provider, _model) => ({
         content: 'Mock response',
         finishReason: 'stop',
         usage: { inputTokens: 10, outputTokens: 20 }
       }),
-      streamMessage: async (messages, provider, model) => ({
+      streamMessage: async (_messages, _provider, _model) => ({
         textStream: async function* () { yield 'Mock'; yield ' stream' },
         finishReason: 'stop'
       })

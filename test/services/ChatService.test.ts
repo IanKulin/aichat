@@ -26,7 +26,7 @@ describe('ChatService Tests', () => {
 
     // Create mock ConfigService  
     mockConfigService = {
-      getProviderConfig: (provider: string) => ({
+      getProviderConfig: (_provider: string) => ({
         name: 'Mock Provider',
         models: ['mock-model'],
         defaultModel: 'mock-model'
@@ -46,8 +46,8 @@ describe('ChatService Tests', () => {
       ]
 
       // Mock the generateText function
-      const originalGenerateText = (await import('ai')).generateText
-      const mockGenerateText = async ({ model, messages: msgs }: any) => ({
+      const _originalGenerateText = (await import('ai')).generateText
+      const _mockGenerateText = async ({ model: _model, messages: _msgs }: any) => ({
         text: 'Hello! I am doing well, thank you for asking.',
         finishReason: 'stop',
         usage: { inputTokens: 10, outputTokens: 15 }
@@ -95,7 +95,7 @@ describe('ChatService Tests', () => {
       let calledProvider = ''
       let calledModel = ''
 
-      mockProviderService.getProviderModel = (provider: string, model: string) => {
+      mockProviderService.getProviderModel = (_provider: string, _model: string) => {
         getProviderModelCalled = true
         calledProvider = provider
         calledModel = model
@@ -107,7 +107,7 @@ describe('ChatService Tests', () => {
 
       try {
         await chatService.processMessage(messages, 'anthropic', 'claude-3-5-haiku-20241022')
-      } catch (error) {
+      } catch {
         // Verify the service was called with correct parameters
         assert.ok(getProviderModelCalled)
         assert.strictEqual(calledProvider, 'anthropic')
@@ -179,7 +179,7 @@ describe('ChatService Tests', () => {
       ]
 
       let getProviderModelCalled = false
-      mockProviderService.getProviderModel = (provider: string, model: string) => {
+      mockProviderService.getProviderModel = (_provider: string, _model: string) => {
         getProviderModelCalled = true
         throw new Error('Test error to verify call')
       }
@@ -189,7 +189,7 @@ describe('ChatService Tests', () => {
 
       try {
         await chatService.streamMessage(messages, 'google', 'gemini-1.5-flash')
-      } catch (error) {
+      } catch {
         assert.ok(getProviderModelCalled)
       }
     })

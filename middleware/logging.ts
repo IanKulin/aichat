@@ -20,8 +20,8 @@ export function requestLogger(
   });
 
   // Override res.end to log response
-  const originalEnd = res.end;
-  res.end = function (chunk?: any, encoding?: any) {
+  const originalEnd = res.end.bind(res);
+  res.end = function (...args: Parameters<typeof originalEnd>) {
     const duration = Date.now() - start;
     
     logger.debug(`${req.method} ${req.path} ${res.statusCode}`, {
@@ -30,7 +30,7 @@ export function requestLogger(
     });
 
     // Call the original end method
-    return originalEnd.call(this, chunk, encoding);
+    return originalEnd(...args);
   };
 
   next();
@@ -59,12 +59,12 @@ export function chatLogger(
 
     // Override res.json to log response details
     const originalJson = res.json;
-    res.json = function (obj: any) {
+    res.json = function (obj: Record<string, unknown>) {
       if (obj.response) {
         logger.debug(`Chat response`, {
           provider: obj.provider,
           model: obj.model,
-          responseLength: obj.response.length,
+          responseLength: typeof obj.response === 'string' ? obj.response.length : 'unknown',
           timestamp: obj.timestamp
         });
       }

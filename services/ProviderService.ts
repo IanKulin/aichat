@@ -6,7 +6,6 @@ import { ProviderRepository } from "../repositories/ProviderRepository.ts";
 // Import shared types
 import type {
   SupportedProvider,
-  ProviderConfig,
   ApiKeyValidation,
   ProviderInfo,
 } from "../lib/types.ts";
@@ -15,7 +14,7 @@ export abstract class ProviderService {
   abstract getAvailableProviders(): SupportedProvider[];
   abstract getProviderInfo(): ProviderInfo[];
   abstract validateProvider(provider: string): boolean;
-  abstract getProviderModel(provider: SupportedProvider, model?: string): any;
+  abstract getProviderModel(provider: SupportedProvider, model?: string): unknown;
   abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
   abstract validateAllProviders(): Record<SupportedProvider, ApiKeyValidation>;
 }

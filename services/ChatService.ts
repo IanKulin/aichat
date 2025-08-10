@@ -1,19 +1,23 @@
 // services/ChatService.ts - Chat processing service
 
-import { generateText, streamText } from "ai";
+import { generateText, streamText, type LanguageModel } from "ai";
 import { marked } from "marked";
 import hljs from "highlight.js";
 import { ProviderService } from "./ProviderService.ts";
 import { ConfigService } from "./ConfigService.ts";
 
 // Configure marked with highlight.js
-marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'hljs language-',
-} as any);
+marked.use({
+  renderer: {
+    code(token) {
+      const code = token.text;
+      const lang = token.lang;
+      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+      const highlighted = hljs.highlight(code, { language }).value;
+      return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    }
+  }
+});
 
 // Import shared types
 import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
@@ -36,7 +40,7 @@ export abstract class ChatService {
     messages: ChatMessage[],
     provider?: string,
     model?: string
-  ): Promise<any>;
+  ): Promise<unknown>;
 }
 
 export class DefaultChatService extends ChatService {
@@ -77,7 +81,7 @@ export class DefaultChatService extends ChatService {
       );
 
       const result = await generateText({
-        model: providerModel,
+        model: providerModel as LanguageModel,
         messages,
         maxOutputTokens: 1000,
         temperature: 0.7,
@@ -139,7 +143,7 @@ export class DefaultChatService extends ChatService {
       );
 
       const result = streamText({
-        model: providerModel,
+        model: providerModel as LanguageModel,
         messages,
         maxOutputTokens: 1000,
         temperature: 0.7,

@@ -7,7 +7,7 @@ import { deepseek } from "@ai-sdk/deepseek";
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import type { SupportedProvider, ApiKeyValidation } from "../lib/types.ts";
 
-export type ProviderInstance = any;
+export type ProviderInstance = unknown;
 
 export abstract class ProviderRepository {
   abstract getProvider(provider: SupportedProvider, model: string): ProviderInstance;

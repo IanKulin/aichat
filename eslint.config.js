@@ -4,7 +4,7 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
-    ignores: ["**/*.min.js", "public/js/**/*.js", "public/css/**"],
+    ignores: ["**/*.min.js", "public/js/**/*.js", "public/css/**", "node_modules/**"],
   },
   {
     files: ["**/*.js"],
@@ -32,6 +32,7 @@ export default [
   },
   {
     files: ["**/*.ts"],
+    ignores: ["test/**/*.ts"],
     languageOptions: {
       parser: tsparser,
       ecmaVersion: 2022,
@@ -54,6 +55,36 @@ export default [
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
+      "no-console": "off",
+      "prefer-const": "error",
+      "no-var": "error",
+      eqeqeq: "error",
+    },
+  },
+  {
+    files: ["test/**/*.ts"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        fetch: "readonly",
+        document: "readonly",
+        window: "readonly",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-explicit-any": "off",
       "no-console": "off",
       "prefer-const": "error",
       "no-var": "error",
