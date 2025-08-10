@@ -251,8 +251,7 @@ body {
 }
 
 .conversation-item.active {
-  background: var(--primary-color);
-  color: white;
+  /* No special styling - same as other conversations */
 }
 
 .conversation-title {

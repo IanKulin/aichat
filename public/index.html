@@ -399,7 +399,7 @@
         }
       }
 
-      function clearConversation() {
+      async function clearConversation() {
         // Reset conversation state
         currentConversation = null;
         conversationHistory = [];
@@ -409,7 +409,9 @@
         
         // Update UI - no title initially
         conversationTitle.textContent = "";
-        updateConversationListUI();
+        
+        // Refresh conversation list to show any previously created conversations
+        await refreshConversationList();
         
         // Focus input
         messageInput.focus();
@@ -537,16 +539,27 @@
       }
 
       function updateConversationListUI() {
-        const emptyState = document.getElementById('conversationListEmpty');
+        let emptyState = document.getElementById('conversationListEmpty');
         
         if (conversationList.length === 0) {
-          emptyState.style.display = 'block';
+          // Create empty state element if it doesn't exist
+          if (!emptyState) {
+            emptyState = document.createElement('div');
+            emptyState.className = 'conversation-list-empty';
+            emptyState.id = 'conversationListEmpty';
+            emptyState.textContent = 'No conversations yet. Start chatting to create your first conversation!';
+          }
+          
           conversationListEl.innerHTML = '';
           conversationListEl.appendChild(emptyState);
           return;
         }
         
-        emptyState.style.display = 'none';
+        // Hide empty state if it exists
+        if (emptyState) {
+          emptyState.style.display = 'none';
+        }
+        
         conversationListEl.innerHTML = '';
         
         conversationList.forEach(conversation => {
@@ -690,7 +703,9 @@
       }
 
       // UI Event Handlers
-      newChatBtn.addEventListener('click', clearConversation);
+      newChatBtn.addEventListener('click', async () => {
+        await clearConversation();
+      });
       
 
       function toggleSidebarCollapse() {
