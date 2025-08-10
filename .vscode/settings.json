@@ -21,6 +21,7 @@
     "**/*.min.js",
     "public/js/**",
     "public/css/**",
-    "node_modules/**"
+    "node_modules/**",
+    "package-lock.json"
   ]
 }
