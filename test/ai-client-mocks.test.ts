@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { MockLanguageModelV2, simulateReadableStream, mockValues } from 'ai/test'
 
 describe('AI Client Mock Tests', () => {
-  describe('sendMessage() with mock providers', () => {
+  describe('generateText() with mock providers', () => {
     test('should return text response from mock provider', async () => {
       // Setup mock environment
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
@@ -121,7 +121,7 @@ describe('AI Client Mock Tests', () => {
     })
   })
 
-  describe('streamMessage() with mock providers', () => {
+  describe('streamText() with mock providers', () => {
     test('should return streaming response from mock provider', async () => {
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
       
@@ -370,7 +370,7 @@ describe('AI Client Mock Tests', () => {
     })
   })
 
-  describe('getProviderModel function integration', () => {
+  describe('Mock provider model integration', () => {
     test('should validate model selection for different providers', async () => {
       // Test OpenAI model validation
       process.env.OPENAI_API_KEY = 'sk-test-key-123456'
