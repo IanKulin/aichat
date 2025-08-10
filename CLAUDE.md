@@ -4,7 +4,7 @@ This file provides guidance to developers when working with code in this reposit
 
 ## Project Overview
 
-This is a Node.js/Express web application that provides a chat interface for interacting with multiple AI providers (OpenAI, Anthropic, Google, DeepSeek, OpenRouter). It's a server-side rendered application with a single-page frontend that makes API calls to various AI services.
+This is a Node.js/Express web application that provides a chat interface for interacting with multiple AI providers (OpenAI, Anthropic, Google, DeepSeek, OpenRouter). It's a server-side rendered application with a single-page frontend that makes API calls to various AI services. The application includes SQLite-based chat persistence for conversation history management.
 
 ## Architecture
 
@@ -15,9 +15,10 @@ The application follows a layered architecture with dependency injection:
 - **API Client**: AI SDK integration module (`lib/ai-client.ts`) that handles multi-provider API communication using Vercel AI SDK
 - **Controllers**: Route handlers that orchestrate services (`controllers/`)
 - **Services**: Business logic layer with dependency injection (`services/`)
-- **Repositories**: Data access layer for configuration and provider management (`repositories/`)
+- **Repositories**: Data access layer for configuration, provider management, and chat persistence (`repositories/`)
 - **Middleware**: Cross-cutting concerns like error handling, validation, and logging (`middleware/`)
 - **Dependency Injection**: Container for managing service lifecycles (`lib/container.ts`)
+- **Database**: SQLite database for chat persistence (`data/db/chat.db`)
 - **Configuration**: 
   - Environment variables managed via `.env` file and dotenv package
   - Model configurations stored in `data/config/models.json`
@@ -44,26 +45,39 @@ Required environment variables (at least one must be set):
 
 ## API Endpoints
 
+### Core Chat API
 - `GET /`: Serves the main chat interface
 - `POST /api/chat`: Handles chat messages (expects `{ messages: Array, provider?: string, model?: string }`)
 - `GET /api/providers`: Returns available providers and their models
 - `GET /api/health`: Health check endpoint with API key validation status
 
+### Conversation Management API
+- `POST /api/conversations`: Create a new conversation (expects `{ title: string }`)
+- `GET /api/conversations`: List conversations with pagination (`?limit=50&offset=0`)
+- `GET /api/conversations/:id`: Get conversation with messages by ID
+- `PUT /api/conversations/:id/title`: Update conversation title (expects `{ title: string }`)
+- `DELETE /api/conversations/:id`: Delete conversation and all its messages
+- `POST /api/conversations/messages`: Save message to conversation
+
 ## Frontend Architecture
 
 The frontend is a single html page with:
-- Conversation history stored in memory (`conversationHistory` array)
+- Conversation history stored in memory (`conversationHistory` array) with optional SQLite persistence
 - Provider and model selection dropdowns with localStorage persistence
 - Dark mode support via CSS media queries
 - Responsive design for mobile devices
 - Auto-resizing textarea for message input
 - Real-time message display with user/assistant/system message types
+- Chat persistence ready (backend implemented, frontend integration pending)
 
 ## Key Features
 
 - Full conversation context is maintained and sent to providers
 - Uses the Vercel AI SDK to abstract calls to multiple providers
 - Dynamic provider/model selection with user preference persistence
+- **SQLite-based chat persistence**: Conversations and messages stored persistently with full CRUD operations
+- **Conversation management**: Create, list, update, delete conversations with automatic timestamping
+- **Message history**: Complete message persistence with provider/model metadata
 - Simplified error handling and API key validation
 - Layered architecture with dependency injection for better maintainability
 
