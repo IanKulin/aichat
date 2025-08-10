@@ -18,6 +18,8 @@ import {
   ProviderRepository,
   DefaultProviderRepository,
 } from "../repositories/ProviderRepository.ts";
+import { ChatRepository } from "../repositories/ChatRepository.ts";
+import { SqliteChatRepository } from "../repositories/SqliteChatRepository.ts";
 import {
   ChatController,
   DefaultChatController,
@@ -30,6 +32,10 @@ import {
   HealthController,
   DefaultHealthController,
 } from "../controllers/HealthController.ts";
+import {
+  ConversationController,
+  DefaultConversationController,
+} from "../controllers/ConversationController.ts";
 
 // Initialize services in the DI container
 export function initializeServices(): void {
@@ -40,6 +46,10 @@ export function initializeServices(): void {
 
   registerSingleton<ProviderRepository>("ProviderRepository", () => {
     return new DefaultProviderRepository();
+  });
+
+  registerSingleton<ChatRepository>("ChatRepository", () => {
+    return new SqliteChatRepository();
   });
 
   // Register ConfigService (depends on ModelRepository)
@@ -57,12 +67,17 @@ export function initializeServices(): void {
     return new DefaultProviderService(configService, providerRepository);
   });
 
-  // Register ChatService (depends on ProviderService and ConfigService)
+  // Register ChatService (depends on ProviderService, ConfigService, and ChatRepository)
   registerSingleton<ChatService>("ChatService", () => {
     const providerService =
       container.resolve<ProviderService>("ProviderService");
     const configService = container.resolve<ConfigService>("ConfigService");
-    return new DefaultChatService(providerService, configService);
+    const chatRepository = container.resolve<ChatRepository>("ChatRepository");
+    return new DefaultChatService(
+      providerService,
+      configService,
+      chatRepository
+    );
   });
 
   // Register Controllers
@@ -89,6 +104,11 @@ export function initializeServices(): void {
       container.resolve<ProviderService>("ProviderService");
     return new DefaultHealthController(providerService);
   });
+
+  registerSingleton<ConversationController>("ConversationController", () => {
+    const chatService = container.resolve<ChatService>("ChatService");
+    return new DefaultConversationController(chatService);
+  });
 }
 
 // Helper functions to resolve services
@@ -114,6 +134,14 @@ export function getProviderController(): ProviderController {
 
 export function getHealthController(): HealthController {
   return container.resolve<HealthController>("HealthController");
+}
+
+export function getChatRepository(): ChatRepository {
+  return container.resolve<ChatRepository>("ChatRepository");
+}
+
+export function getConversationController(): ConversationController {
+  return container.resolve<ConversationController>("ConversationController");
 }
 
 // Initialize services when this module is imported

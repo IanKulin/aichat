@@ -8,6 +8,7 @@ import {
   getChatController,
   getProviderController,
   getHealthController,
+  getConversationController,
 } from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
 import {
@@ -36,6 +37,7 @@ const providerService = getProviderService();
 const chatController = getChatController();
 const providerController = getProviderController();
 const healthController = getHealthController();
+const conversationController = getConversationController();
 
 // Validate API keys on startup
 const providerValidations = providerService.validateAllProviders();
@@ -75,6 +77,49 @@ app.get("/api/providers", (req, res) => {
 app.get("/api/health", (req, res) => {
   healthController.checkHealth(req, res);
 });
+
+// Conversation management endpoints
+app.post(
+  "/api/conversations",
+  asyncHandler(async (req, res) => {
+    await conversationController.createConversation(req, res);
+  })
+);
+
+app.get(
+  "/api/conversations",
+  asyncHandler(async (req, res) => {
+    await conversationController.listConversations(req, res);
+  })
+);
+
+app.get(
+  "/api/conversations/:id",
+  asyncHandler(async (req, res) => {
+    await conversationController.getConversation(req, res);
+  })
+);
+
+app.put(
+  "/api/conversations/:id/title",
+  asyncHandler(async (req, res) => {
+    await conversationController.updateConversationTitle(req, res);
+  })
+);
+
+app.delete(
+  "/api/conversations/:id",
+  asyncHandler(async (req, res) => {
+    await conversationController.deleteConversation(req, res);
+  })
+);
+
+app.post(
+  "/api/conversations/messages",
+  asyncHandler(async (req, res) => {
+    await conversationController.saveMessage(req, res);
+  })
+);
 
 // Error handling middleware
 app.use(errorHandler);

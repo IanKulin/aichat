@@ -8,3 +8,4 @@
 0.0.6 Refactor to middleware/dependency injection
 0.0.7 markdown responses with syntax highlighting
 0.0.8 CSS and frontend tidy
+0.0.9 SQLite
