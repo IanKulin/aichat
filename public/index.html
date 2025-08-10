@@ -29,8 +29,8 @@
       <!-- Conversation History Sidebar -->
       <aside class="conversation-sidebar" id="conversationSidebar">
         <div class="sidebar-button-row">
-          <button class="new-chat-btn" id="newChatBtn" aria-label="Start a new conversation">✚</button>
-          <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">←</button>
+          <button class="new-chat-btn" id="newChatBtn" aria-label="Start a new conversation" title="Start new chat">✚</button>
+          <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar" title="Close chat history">←</button>
         </div>
         <div class="conversation-search">
           <input type="text" id="conversationSearch" placeholder="Search conversations..." class="search-input">
@@ -609,7 +609,12 @@
 
       function toggleSidebarCollapse() {
         conversationSidebar.classList.toggle('collapsed');
-        localStorage.setItem('sidebarCollapsed', conversationSidebar.classList.contains('collapsed'));
+        const isCollapsed = conversationSidebar.classList.contains('collapsed');
+        
+        // Update tooltip text based on state
+        sidebarCollapseBtn.title = isCollapsed ? 'Open chat history' : 'Close chat history';
+        
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
       }
 
       sidebarCollapseBtn.addEventListener('click', toggleSidebarCollapse);
@@ -776,6 +781,9 @@
         if (sidebarCollapsed) {
           conversationSidebar.classList.add('collapsed');
         }
+        
+        // Set initial tooltip text
+        sidebarCollapseBtn.title = sidebarCollapsed ? 'Open chat history' : 'Close chat history';
       }
 
       // Initialize app
