@@ -73,9 +73,6 @@
         </header>
         
         <section id="chatContainer" role="log" aria-live="polite" aria-label="Conversation history">
-          <div class="message system">
-            Welcome! Start a conversation by typing a message below.
-          </div>
         </section>
 
         <form aria-label="Send message">
@@ -321,7 +318,7 @@
         conversationHistory = [];
         
         // Clear chat display
-        chatContainer.innerHTML = '<div class="message system">Welcome! Start a conversation by typing a message below.</div>';
+        chatContainer.innerHTML = '';
         
         // Update UI
         conversationTitle.textContent = "New Chat";
@@ -367,7 +364,7 @@
           chatContainer.innerHTML = '';
           
           if (conversationHistory.length === 0) {
-            chatContainer.innerHTML = '<div class="message system">Welcome! Start a conversation by typing a message below.</div>';
+            // Leave chat container empty for new conversations
           } else {
             conversationHistory.forEach(msg => {
               const metadata = msg.provider && msg.model ? {

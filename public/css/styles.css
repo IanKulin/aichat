@@ -29,8 +29,6 @@
   --msg-user-text: white;
   --msg-assistant-bg: var(--bg-tertiary);
   --msg-assistant-text: var(--text-primary);
-  --msg-system-bg: #fff3cd;
-  --msg-system-text: #856404;
   
   /* Status Colors */
   --error-bg: #f8d7da;
@@ -82,8 +80,6 @@
     
     --msg-assistant-bg: var(--bg-tertiary);
     --msg-assistant-text: var(--text-primary);
-    --msg-system-bg: #3d3d00;
-    --msg-system-text: #ffeb3b;
     
     --error-bg: #4a1a1a;
     --error-text: #ff6b6b;
@@ -470,15 +466,6 @@ body {
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.message.system {
-  background-color: var(--msg-system-bg);
-  color: var(--msg-system-text);
-  text-align: center;
-  margin: 0 auto;
-  font-size: 14px;
-  max-width: 60%;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
 
 /* Form Controls */
 .message-input {
