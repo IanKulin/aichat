@@ -1,7 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
 import { MockLanguageModelV2, simulateReadableStream, mockValues } from 'ai/test'
-import { sendMessage, streamMessage } from '../lib/ai-client.ts'
 
 describe('AI Client Mock Tests', () => {
   describe('sendMessage() with mock providers', () => {
