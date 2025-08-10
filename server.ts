@@ -68,6 +68,14 @@ app.post(
   })
 );
 
+// Title generation endpoint
+app.post(
+  "/api/generate-title",
+  asyncHandler(async (req, res) => {
+    await chatController.generateTitle(req, res);
+  })
+);
+
 // Providers endpoint - returns available providers and their models
 app.get("/api/providers", (req, res) => {
   providerController.getProviders(req, res);

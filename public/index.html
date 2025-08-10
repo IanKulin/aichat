@@ -54,8 +54,7 @@
           <div class="header-left">
             <button class="sidebar-toggle-mobile" id="sidebarToggleMobile" aria-label="Toggle conversation history">☰</button>
             <div class="conversation-title-container">
-              <h1 id="conversationTitle">New Chat</h1>
-              <button class="edit-title-btn" id="editTitleBtn" aria-label="Edit conversation title">✎</button>
+              <h1 id="conversationTitle"></h1>
             </div>
           </div>
           <nav aria-label="Provider and model selection">
@@ -90,7 +89,6 @@
       </main>
     </div>
 
-    <div class="loading" id="loadingIndicator" role="status" aria-live="polite">AI is thinking...</div>
 
     <script>
       // Initialize highlight.js
@@ -99,7 +97,6 @@
       const chatContainer = document.getElementById("chatContainer");
       const messageInput = document.getElementById("messageInput");
       const sendButton = document.getElementById("sendButton");
-      const loadingIndicator = document.getElementById("loadingIndicator");
       const providerSelect = document.getElementById("providerSelect");
       const modelSelect = document.getElementById("modelSelect");
 
@@ -122,7 +119,6 @@
       const conversationListEl = document.getElementById("conversationList");
       const conversationTitle = document.getElementById("conversationTitle");
       const newChatBtn = document.getElementById("newChatBtn");
-      const editTitleBtn = document.getElementById("editTitleBtn");
       const sidebarCollapseBtn = document.getElementById("sidebarCollapseBtn");
       const sidebarToggleMobile = document.getElementById("sidebarToggleMobile");
       const autoSaveToggle = document.getElementById("autoSaveToggle");
@@ -196,16 +192,98 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
+      function addSkeletonMessage() {
+        const skeletonDiv = document.createElement("div");
+        skeletonDiv.className = "message skeleton";
+        skeletonDiv.id = "skeleton-message";
+        skeletonDiv.setAttribute("role", "status");
+        skeletonDiv.setAttribute("aria-live", "polite");
+        skeletonDiv.setAttribute("aria-label", "AI is responding");
+        
+        skeletonDiv.innerHTML = `
+          <div class="skeleton-content">
+            <div class="skeleton-thinking-text">AI is thinking...</div>
+            <div class="skeleton-line skeleton-line-long"></div>
+            <div class="skeleton-line skeleton-line-medium"></div>
+            <div class="skeleton-line skeleton-line-short"></div>
+          </div>
+          <div class="message-content" style="display: none;"></div>
+        `;
+        
+        chatContainer.appendChild(skeletonDiv);
+        scrollToBottom();
+      }
+
+      function transformSkeletonToMessage(content, metadata = null) {
+        const skeletonMessage = document.getElementById("skeleton-message");
+        if (!skeletonMessage) return null;
+        
+        const skeletonContent = skeletonMessage.querySelector('.skeleton-content');
+        const messageContent = skeletonMessage.querySelector('.message-content');
+        
+        // Prepare the actual message content
+        if (metadata) {
+          // Create content with provider info
+          const contentDiv = document.createElement("div");
+          contentDiv.innerHTML = DOMPurify.sanitize(content);
+          
+          const providerInfo = document.createElement("div");
+          providerInfo.className = "provider-info";
+          providerInfo.textContent = `${metadata.providerName} • ${metadata.model}`;
+          
+          messageContent.appendChild(contentDiv);
+          messageContent.appendChild(providerInfo);
+        } else {
+          messageContent.innerHTML = DOMPurify.sanitize(content);
+        }
+        
+        // Show the message content
+        messageContent.style.display = 'block';
+        
+        // Start the transition
+        skeletonContent.classList.add('fade-out');
+        
+        setTimeout(() => {
+          messageContent.classList.add('fade-in');
+          // Remove skeleton class and update attributes
+          skeletonMessage.classList.remove('skeleton');
+          skeletonMessage.className = 'message assistant';
+          skeletonMessage.removeAttribute('role');
+          skeletonMessage.removeAttribute('aria-live');
+          skeletonMessage.removeAttribute('aria-label');
+          skeletonMessage.removeAttribute('id');
+          
+          // Apply syntax highlighting to any new code blocks
+          hljs.highlightAll();
+          
+          // Remove skeleton content after transition
+          setTimeout(() => {
+            if (skeletonContent) {
+              skeletonContent.remove();
+            }
+          }, 300);
+        }, 150); // Small delay for better visual timing
+        
+        return skeletonMessage;
+      }
+
+      function removeSkeletonMessage() {
+        const skeletonMessage = document.getElementById("skeleton-message");
+        if (skeletonMessage) {
+          skeletonMessage.remove();
+        }
+      }
+
       function setLoading(isLoading) {
         sendButton.disabled = isLoading;
         messageInput.disabled = isLoading;
 
         if (isLoading) {
-          loadingIndicator.style.display = "block";
           sendButton.textContent = "⏳";
+          addSkeletonMessage();
         } else {
-          loadingIndicator.style.display = "none";
           sendButton.textContent = "➤";
+          removeSkeletonMessage();
         }
       }
 
@@ -216,9 +294,13 @@
           return;
         }
 
+        // Remember if this is the first message for title generation
+        const isFirstMessage = conversationHistory.length === 0;
+        const firstUserMessage = isFirstMessage ? message : null;
+
         // Create conversation if needed
         if (!currentConversation && autoSaveEnabled) {
-          currentConversation = await createNewConversation(message);
+          currentConversation = await createNewConversation();
           if (!currentConversation) {
             // Failed to create conversation, continue without persistence
             console.warn('Continuing without persistence due to conversation creation failure');
@@ -287,11 +369,16 @@
               content: data.response,
             });
 
-            // Add to display with provider metadata
-            addMessage(data.response, "assistant", {
+            // Transform skeleton to actual message with provider metadata
+            transformSkeletonToMessage(data.response, {
               providerName: data.providerName,
               model: data.model
             });
+
+            // Generate title after first response
+            if (firstUserMessage && currentConversation) {
+              await generateAndSetTitle(firstUserMessage);
+            }
 
             // Update conversation list (conversation was modified)
             if (currentConversation) {
@@ -320,8 +407,8 @@
         // Clear chat display
         chatContainer.innerHTML = '';
         
-        // Update UI
-        conversationTitle.textContent = "New Chat";
+        // Update UI - no title initially
+        conversationTitle.textContent = "";
         updateConversationListUI();
         
         // Focus input
@@ -329,17 +416,13 @@
       }
 
       // Conversation management functions
-      async function createNewConversation(firstMessage = null) {
+      async function createNewConversation() {
         try {
-          const title = firstMessage ? 
-            ConversationUtils.generateConversationTitle(firstMessage) : 
-            `New Chat - ${new Date().toLocaleDateString()}`;
-            
-          const conversation = await conversationAPI.createConversation(title);
+          // Create conversation without title initially
+          const conversation = await conversationAPI.createConversation("Untitled");
           currentConversation = conversation;
           
-          // Update UI
-          conversationTitle.textContent = conversation.title;
+          // Don't set title yet - it will be set after first response
           refreshConversationList();
           
           return conversation;
@@ -347,6 +430,28 @@
           console.error('Failed to create conversation:', error);
           showError('Failed to create new conversation');
           return null;
+        }
+      }
+
+      // Generate and set conversation title after first response
+      async function generateAndSetTitle(firstMessage) {
+        if (!currentConversation || !firstMessage) return;
+        
+        try {
+          const titleResponse = await conversationAPI.generateTitle(
+            firstMessage, 
+            selectedProvider, 
+            selectedModel
+          );
+          
+          if (titleResponse.title) {
+            // Update the conversation title
+            await updateConversationTitle(currentConversation.id, titleResponse.title);
+          }
+        } catch (error) {
+          console.warn('Failed to generate title:', error);
+          // Fallback to a simple title
+          await updateConversationTitle(currentConversation.id, "Chat");
         }
       }
 
@@ -464,7 +569,6 @@
             <span>${conversation.messageCount || 0} messages</span>
           </div>
           <div class="conversation-actions">
-            <button class="action-btn edit-btn" data-id="${conversation.id}" title="Rename">✎</button>
             <button class="action-btn delete-btn" data-id="${conversation.id}" title="Delete">🗑</button>
           </div>
         `;
@@ -477,10 +581,6 @@
         });
         
         // Add handlers for action buttons
-        item.querySelector('.edit-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          editConversationTitle(conversation.id, conversation.title);
-        });
         
         item.querySelector('.delete-btn').addEventListener('click', (e) => {
           e.stopPropagation();
@@ -490,12 +590,6 @@
         return item;
       }
 
-      function editConversationTitle(id, currentTitle) {
-        const newTitle = prompt('Enter new title:', currentTitle);
-        if (newTitle && newTitle !== currentTitle) {
-          updateConversationTitle(id, newTitle);
-        }
-      }
 
       // Provider/model selection functions
       async function loadProviders() {
@@ -598,11 +692,6 @@
       // UI Event Handlers
       newChatBtn.addEventListener('click', clearConversation);
       
-      editTitleBtn.addEventListener('click', () => {
-        if (currentConversation) {
-          editConversationTitle(currentConversation.id, currentConversation.title);
-        }
-      });
 
       function toggleSidebarCollapse() {
         conversationSidebar.classList.toggle('collapsed');

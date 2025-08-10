@@ -178,6 +178,33 @@ class ConversationAPI {
   }
 
   /**
+   * Generate conversation title using LLM
+   * @param {string} firstMessage - First user message
+   * @param {string} provider - AI provider to use
+   * @param {string} model - AI model to use
+   * @returns {Promise<Object>} Generated title response
+   */
+  async generateTitle(firstMessage, provider, model) {
+    const response = await fetch(`${this.baseURL}/generate-title`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        firstMessage,
+        provider,
+        model
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate title: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * Retry wrapper for API calls
    * @param {Function} fn - Function to retry
    * @param {number} maxRetries - Maximum retry attempts
@@ -208,38 +235,6 @@ class ConversationAPI {
 
 // Utility functions for conversation management
 class ConversationUtils {
-  /**
-   * Generate a conversation title from the first message
-   * @param {string} firstMessage - First user message
-   * @returns {string} Generated title
-   */
-  static generateConversationTitle(firstMessage) {
-    if (!firstMessage || !firstMessage.trim()) {
-      return `New Chat - ${new Date().toLocaleDateString()}`;
-    }
-
-    // Clean and truncate the message
-    const cleaned = firstMessage
-      .trim()
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ');
-
-    // Extract meaningful title (first sentence or 50 characters)
-    let title = cleaned;
-    
-    // Try to get first sentence
-    const sentenceEnd = cleaned.match(/[.!?]/);
-    if (sentenceEnd && sentenceEnd.index < 80) {
-      title = cleaned.substring(0, sentenceEnd.index + 1);
-    } else if (cleaned.length > 50) {
-      // Truncate at word boundary
-      const truncated = cleaned.substring(0, 50);
-      const lastSpace = truncated.lastIndexOf(' ');
-      title = lastSpace > 0 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
-    }
-
-    return title;
-  }
 
   /**
    * Check if conversation title should be auto-updated

@@ -547,12 +547,82 @@ body {
 
 
 /* Status Elements */
-.loading {
-  display: none;
-  padding: var(--spacing-md) var(--spacing-lg);
+/* Skeleton Message */
+.message.skeleton {
+  background: var(--msg-assistant-bg);
+  color: var(--msg-assistant-text);
+  margin-left: 0;
+  max-width: 80%;
+}
+
+/* Skeleton content container */
+.skeleton-content {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.skeleton-content.fade-out {
+  opacity: 0;
+}
+
+/* Thinking text styling */
+.skeleton-thinking-text {
   color: var(--text-secondary);
   font-style: italic;
-  transition: color var(--transition-fast);
+  font-size: 0.9em;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.8;
+}
+
+/* Actual message content container */
+.message-content {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.message-content.fade-in {
+  opacity: 1;
+}
+
+.skeleton-line {
+  height: 16px;
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-sm);
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-line-long {
+  width: 90%;
+}
+
+.skeleton-line-medium {
+  width: 65%;
+}
+
+.skeleton-line-short {
+  width: 40%;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Dark mode skeleton adjustments */
+@media (prefers-color-scheme: dark) {
+  .skeleton-line {
+    background: var(--border-color);
+    opacity: 0.3;
+  }
 }
 
 .error {
