@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { MockLanguageModelV2, simulateReadableStream, mockValues } from 'ai/test'
+import { MockLanguageModelV2, simulateReadableStream } from 'ai/test'
 
 describe('AI Client Mock Tests', () => {
   describe('generateText() with mock providers', () => {
@@ -180,9 +180,8 @@ describe('AI Client Mock Tests', () => {
         })
         
         // Try to consume the stream
-        let fullText = ''
-        for await (const chunk of result.textStream) {
-          fullText += chunk
+        for await (const _chunk of result.textStream) {
+          // Just consume the stream, we don't need the text
         }
         
         assert.fail('Should have thrown an error')

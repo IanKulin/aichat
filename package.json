@@ -7,8 +7,8 @@
   "scripts": {
     "start": "node --experimental-strip-types server.ts",
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "lint": "npx eslint *.ts lib/*.ts scripts/*.ts --fix --max-warnings 0",
-    "format": "npx prettier *.ts lib/*.ts scripts/*.ts --write",
+    "lint": "npx eslint *.ts lib/*.ts scripts/*.ts test/*.ts --fix --max-warnings 0",
+    "format": "npx prettier *.ts lib/*.ts scripts/*.ts test/*.ts --write",
     "typecheck": "npx tsc --noEmit",
     "sanity-check": "node --experimental-strip-types scripts/sanity-check.ts",
     "add-model": "node --experimental-strip-types scripts/add-model.ts",

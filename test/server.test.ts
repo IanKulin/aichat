@@ -2,7 +2,7 @@ import { test, describe } from 'node:test'
 import assert from 'node:assert'
 import request from 'supertest'
 import express from 'express'
-import { getProviderService } from '../lib/services.ts'
+// import { getProviderService } from '../lib/services.ts' // TODO: Use this when needed
 
 // Mock the AI client functions that make external calls
 const mockValidateAllProviders = () => {
