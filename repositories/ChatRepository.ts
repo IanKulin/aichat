@@ -9,6 +9,10 @@ export type Conversation = {
   updatedAt: Date;
 };
 
+export type ConversationWithMessageCount = Conversation & {
+  messageCount: number;
+};
+
 export type PersistedMessage = ChatMessage & {
   id: number;
   conversationId: string;
@@ -36,7 +40,7 @@ export type SaveMessageData = {
 export abstract class ChatRepository {
   abstract createConversation(data: CreateConversationData): Promise<Conversation>;
   abstract getConversation(id: string): Promise<ConversationWithMessages | null>;
-  abstract listConversations(limit?: number, offset?: number): Promise<Conversation[]>;
+  abstract listConversations(limit?: number, offset?: number): Promise<ConversationWithMessageCount[]>;
   abstract updateConversationTitle(id: string, title: string): Promise<void>;
   abstract deleteConversation(id: string): Promise<void>;
   abstract saveMessage(data: SaveMessageData): Promise<PersistedMessage>;

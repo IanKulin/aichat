@@ -6,6 +6,7 @@ import { getDatabase } from "../lib/database.ts";
 import {
   ChatRepository,
   type Conversation,
+  type ConversationWithMessageCount,
   type PersistedMessage,
   type ConversationWithMessages,
   type CreateConversationData,
@@ -17,6 +18,14 @@ interface ConversationRow {
   title: string;
   created_at: number;
   updated_at: number;
+}
+
+interface ConversationWithCountRow {
+  id: string;
+  title: string;
+  created_at: number;
+  updated_at: number;
+  message_count: number;
 }
 
 interface MessageRow {
@@ -101,21 +110,29 @@ export class SqliteChatRepository extends ChatRepository {
     };
   }
 
-  async listConversations(limit = 50, offset = 0): Promise<Conversation[]> {
+  async listConversations(limit = 50, offset = 0): Promise<ConversationWithMessageCount[]> {
     const stmt = this.db.prepare(`
-      SELECT id, title, created_at, updated_at
-      FROM conversations
-      ORDER BY updated_at DESC
+      SELECT 
+        c.id, 
+        c.title, 
+        c.created_at, 
+        c.updated_at,
+        COALESCE(COUNT(m.id), 0) as message_count
+      FROM conversations c
+      LEFT JOIN messages m ON c.id = m.conversation_id
+      GROUP BY c.id, c.title, c.created_at, c.updated_at
+      ORDER BY c.updated_at DESC
       LIMIT ? OFFSET ?
     `);
     
-    const rows = stmt.all(limit, offset) as ConversationRow[];
+    const rows = stmt.all(limit, offset) as ConversationWithCountRow[];
     
     return rows.map(row => ({
       id: row.id,
       title: row.title,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
+      messageCount: row.message_count,
     }));
   }
 
