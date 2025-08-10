@@ -1,10 +1,7 @@
 // scripts/sanity-check.ts
 
 import "dotenv/config";
-import {
-  getConfigService,
-  getChatService,
-} from "../lib/services.ts";
+import { getConfigService, getChatService } from "../lib/services.ts";
 import type { SupportedProvider } from "../lib/types.ts";
 import { logger } from "../lib/logger.ts";
 
@@ -14,7 +11,7 @@ async function runSanityCheck() {
   const configService = getConfigService();
   const chatService = getChatService();
   const providerConfigs = configService.getProviderConfigs();
-  
+
   const availableProviders = Object.keys(
     providerConfigs
   ) as SupportedProvider[];

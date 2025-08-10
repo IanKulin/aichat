@@ -1,14 +1,9 @@
 // lib/ai-client.ts - Streamlined interface to services
 
-import {
-  getChatService,
-} from "./services.ts";
+import { getChatService } from "./services.ts";
 
 // Import shared types
-import type {
-  SupportedProvider,
-  ChatMessage,
-} from "./types.ts";
+import type { SupportedProvider, ChatMessage } from "./types.ts";
 
 // Generate text (non-streaming)
 export async function sendMessage(
