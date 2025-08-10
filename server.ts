@@ -3,7 +3,6 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { logger } from "./lib/logger.ts";
-import { validateAllProviders } from "./lib/ai-client.ts";
 import {
   getProviderService,
   getChatController,
@@ -39,7 +38,7 @@ const providerController = getProviderController();
 const healthController = getHealthController();
 
 // Validate API keys on startup
-const providerValidations = validateAllProviders();
+const providerValidations = providerService.validateAllProviders();
 const availableProviders = providerService.getAvailableProviders();
 
 Object.entries(providerValidations).forEach(([provider, validation]) => {
@@ -75,11 +74,6 @@ app.get("/api/providers", (req, res) => {
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   healthController.checkHealth(req, res);
-});
-
-// serve index.html for the default route
-app.get("/", (req, res) => {
-  res.sendFile(join(__dirname, "public", "index.html"));
 });
 
 // Error handling middleware

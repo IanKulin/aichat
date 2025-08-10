@@ -3,31 +3,13 @@
 import { ConfigService } from "./ConfigService.ts";
 import { ProviderRepository } from "../repositories/ProviderRepository.ts";
 
-// Re-declare types locally to avoid import issues with Node.js strip-types
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
-
-export type ProviderConfig = {
-  name: string;
-  models: string[];
-  defaultModel: string;
-}
-
-export type ApiKeyValidation = {
-  valid: boolean;
-  message: string;
-}
-
-export type ProviderInfo = {
-  id: string;
-  name: string;
-  models: string[];
-  defaultModel: string;
-}
+// Import shared types
+import type {
+  SupportedProvider,
+  ProviderConfig,
+  ApiKeyValidation,
+  ProviderInfo,
+} from "../lib/types.ts";
 
 export abstract class ProviderService {
   abstract getAvailableProviders(): SupportedProvider[];

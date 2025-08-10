@@ -4,13 +4,7 @@ import { type Request, type Response } from "express";
 import { ChatService } from "../services/ChatService.ts";
 import { ProviderService } from "../services/ProviderService.ts";
 import { ConfigService } from "../services/ConfigService.ts";
-
-// Local type definitions to avoid circular imports
-type SupportedProvider = "openai" | "anthropic" | "google" | "deepseek" | "openrouter";
-type ChatMessage = {
-  role: "user" | "assistant" | "system";
-  content: string;
-};
+import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
 
 interface ChatRequest {
   messages: ChatMessage[];

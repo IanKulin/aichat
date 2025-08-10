@@ -5,18 +5,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
 import { openrouter } from "@openrouter/ai-sdk-provider";
-
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
-
-export type ApiKeyValidation = {
-  valid: boolean;
-  message: string;
-}
+import type { SupportedProvider, ApiKeyValidation } from "../lib/types.ts";
 
 export type ProviderInstance = any;
 

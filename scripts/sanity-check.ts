@@ -1,11 +1,8 @@
 // scripts/sanity-check.ts
 
 import "dotenv/config";
-import {
-  sendMessage,
-  providerConfigs,
-  type SupportedProvider,
-} from "../lib/ai-client.ts";
+import { sendMessage, providerConfigs } from "../lib/ai-client.ts";
+import type { SupportedProvider } from "../lib/types.ts";
 import { logger } from "../lib/logger.ts";
 
 async function runSanityCheck() {

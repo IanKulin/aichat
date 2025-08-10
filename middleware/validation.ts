@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { type ChatMessage } from "../lib/ai-client.ts";
+import type { ChatMessage } from "../lib/types.ts";
 import { getProviderService } from "../lib/services.ts";
 
 interface ChatRequest {

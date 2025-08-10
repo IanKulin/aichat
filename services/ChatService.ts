@@ -15,18 +15,8 @@ marked.setOptions({
   langPrefix: 'hljs language-',
 } as any);
 
-// Re-declare types locally to avoid import issues with Node.js strip-types
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
-
-export type ChatMessage = {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
+// Import shared types
+import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
 
 export type ChatResponse = {
   response: string;

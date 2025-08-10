@@ -6,29 +6,13 @@ import {
   getChatService,
 } from "./services.ts";
 
-// Local type definitions to avoid circular imports and Node.js strip-types issues
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
-
-export type ProviderConfig = {
-  name: string;
-  models: string[];
-  defaultModel: string;
-};
-
-export type ChatMessage = {
-  role: "user" | "assistant" | "system";
-  content: string;
-};
-
-export type ApiKeyValidation = {
-  valid: boolean;
-  message: string;
-};
+// Import shared types
+import type {
+  SupportedProvider,
+  ProviderConfig,
+  ChatMessage,
+  ApiKeyValidation,
+} from "./types.ts";
 
 // Backward compatibility exports
 export const providerConfigs = getConfigService().getProviderConfigs();
@@ -78,12 +62,4 @@ export async function streamMessage(
 ) {
   const chatService = getChatService();
   return await chatService.streamMessage(messages, provider, model);
-}
-
-// Validate all configured providers on startup
-export function validateAllProviders(): Record<
-  SupportedProvider,
-  ApiKeyValidation
-> {
-  return getProviderService().validateAllProviders();
 }

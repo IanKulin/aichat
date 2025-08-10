@@ -1,20 +1,7 @@
 // services/ConfigService.ts - Configuration management service
 
 import { ModelRepository } from "../repositories/ModelRepository.ts";
-
-// Re-declare types locally to avoid import issues with Node.js strip-types
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
-
-export type ProviderConfig = {
-  name: string;
-  models: string[];
-  defaultModel: string;
-}
+import type { SupportedProvider, ProviderConfig } from "../lib/types.ts";
 
 export abstract class ConfigService {
   abstract getProviderConfigs(): Record<string, ProviderConfig>;
