@@ -173,6 +173,9 @@ describe("AI Client Mock Tests", () => {
     });
 
     test("should handle streaming errors", async () => {
+      console.log(
+        "\n⚠️  The following 'Streaming error' stack trace is EXPECTED and part of the test:\n"
+      );
       const mockModel = new MockLanguageModelV2({
         doStream: async () => {
           throw new Error("Streaming error");
