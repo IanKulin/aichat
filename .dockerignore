@@ -1,0 +1,11 @@
+node_modules
+.git
+.vscode
+temp
+Dockerfile
+.env
+.DS_Store
+.prettierrc
+.gitignore
+.claude
+.crush

@@ -12,7 +12,9 @@
     "typecheck": "npx tsc --noEmit",
     "sanity-check": "node --experimental-strip-types scripts/sanity-check.ts",
     "add-model": "node --experimental-strip-types scripts/add-model.ts",
-    "check-models": "node --experimental-strip-types scripts/check-models.ts"
+    "check-models": "node --experimental-strip-types scripts/check-models.ts",
+    "docker:build": "docker build -t ghcr.io/iankulin/aichat:latest .",
+    "docker:push": "./scripts/docker-push.sh"
   },
   "author": "IanKulin",
   "license": "MIT",
