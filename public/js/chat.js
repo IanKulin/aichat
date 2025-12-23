@@ -77,8 +77,8 @@ export async function sendMessage() {
   // Set loading state
   setLoading(true);
 
+  let data;
   try {
-    let data;
 
     if (updatedCurrentConv && autoSaveEnabled) {
       // Use the persistence-aware API
@@ -117,6 +117,11 @@ export async function sendMessage() {
         content: data.response,
       });
 
+      // Disable loading cleanup - transformation will handle skeleton removal
+      sendButton.disabled = false;
+      messageInput.disabled = false;
+      sendButton.textContent = "➤";
+
       // Transform skeleton to actual message with provider metadata
       transformSkeletonToMessage(data.response, {
         providerName: data.providerName,
@@ -143,7 +148,11 @@ export async function sendMessage() {
     // Remove the failed user message from history
     popFromConversationHistory();
   } finally {
-    setLoading(false);
+    // Note: If we got a response, we already re-enabled the UI above
+    // Only call setLoading(false) if there was an error (skeleton needs cleanup)
+    if (!data || !data.response) {
+      setLoading(false);
+    }
     messageInput.focus();
   }
 }
