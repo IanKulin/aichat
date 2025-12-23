@@ -1,6 +1,6 @@
 {
   "name": "aichat",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Chat interface to LLMs",
   "type": "module",
   "main": "server.ts",

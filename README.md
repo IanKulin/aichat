@@ -1,5 +1,5 @@
 # AI Chat 
-- Web interface to allow LLM chat using API keys
+- **AI CHat** Web interface to allow LLM chat using API keys
 
 ## How to Add New Models:
 
