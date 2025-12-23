@@ -83,17 +83,8 @@ function initializeSchema(db: Database.Database): void {
   db.exec(createMessagesConversationIndex);
 }
 
-// Database cleanup on process exit
+// Database cleanup on process exit (safety net)
+// Graceful shutdown is handled in server.ts
 process.on("exit", () => {
   closeDatabase();
-});
-
-process.on("SIGINT", () => {
-  closeDatabase();
-  process.exit(0);
-});
-
-process.on("SIGTERM", () => {
-  closeDatabase();
-  process.exit(0);
 });

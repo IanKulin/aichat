@@ -21,6 +21,7 @@ import {
   apiLimiter,
   healthLimiter,
 } from "./middleware/rate-limiter.ts";
+import { closeDatabase } from "./lib/database.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -145,8 +146,43 @@ app.post(
 // Error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`Server running on http://localhost:${PORT}`);
   logger.info(`API available at http://localhost:${PORT}/api/chat`);
   logger.info(`Health check: http://localhost:${PORT}/api/health`);
 });
+
+// Graceful shutdown handling
+let isShuttingDown = false;
+
+function gracefulShutdown(signal: string) {
+  if (isShuttingDown) {
+    logger.warn(`${signal} received again, forcing exit`);
+    process.exit(1);
+  }
+
+  isShuttingDown = true;
+  logger.info(`${signal} received, starting graceful shutdown...`);
+
+  // Force shutdown after 10 seconds
+  const forceShutdownTimer = setTimeout(() => {
+    logger.error("Graceful shutdown timed out, forcing exit");
+    process.exit(1);
+  }, 10000);
+
+  server.close((err) => {
+    if (err) {
+      logger.error("Error during server shutdown:", err);
+      process.exit(1);
+    }
+
+    logger.info("Server closed, cleaning up database...");
+    closeDatabase();
+    clearTimeout(forceShutdownTimer);
+    logger.info("Shutdown complete");
+    process.exit(0);
+  });
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));

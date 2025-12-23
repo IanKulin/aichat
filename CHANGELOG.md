@@ -8,6 +8,11 @@
 0.0.06 Refactor to middleware/dependency injection
 0.0.07 markdown responses with syntax highlighting
 0.0.08 CSS and frontend tidy
-0.0.09 SQLite
-0.0.10 Refactor js out of index.html
+0.0.09 SQLite chat history
+0.0.10 
+- Refactor js out of index.html
+- Rate limiting
+- Docker
+- Graceful shutdown
+
 
