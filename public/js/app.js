@@ -103,9 +103,9 @@ function loadUserSelection() {
     const provider = availableProviders.find(p => p.id === savedProvider);
     if (provider && provider.models.includes(savedModel)) {
       setSelectedProvider(savedProvider);
-      setSelectedModel(savedModel);
       providerSelect.value = savedProvider;
       loadModelsForProvider(savedProvider);
+      setSelectedModel(savedModel); // Set after loadModelsForProvider to prevent state overwrite
       modelSelect.value = savedModel;
     }
   }
