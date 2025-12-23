@@ -16,6 +16,11 @@ import {
   validateJsonBody,
 } from "./middleware/validation.ts";
 import { requestLogger, chatLogger } from "./middleware/logging.ts";
+import {
+  chatLimiter,
+  apiLimiter,
+  healthLimiter,
+} from "./middleware/rate-limiter.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,6 +67,7 @@ if (availableProviders.length === 0) {
 // Chat endpoint with multi-provider support
 app.post(
   "/api/chat",
+  chatLimiter,
   validateChatRequest,
   asyncHandler(async (req, res) => {
     await chatController.processMessage(req, res);
@@ -71,24 +77,26 @@ app.post(
 // Title generation endpoint
 app.post(
   "/api/generate-title",
+  chatLimiter,
   asyncHandler(async (req, res) => {
     await chatController.generateTitle(req, res);
   })
 );
 
 // Providers endpoint - returns available providers and their models
-app.get("/api/providers", (req, res) => {
+app.get("/api/providers", apiLimiter, (req, res) => {
   providerController.getProviders(req, res);
 });
 
 // Health check endpoint
-app.get("/api/health", (req, res) => {
+app.get("/api/health", healthLimiter, (req, res) => {
   healthController.checkHealth(req, res);
 });
 
 // Conversation management endpoints
 app.post(
   "/api/conversations",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.createConversation(req, res);
   })
@@ -96,6 +104,7 @@ app.post(
 
 app.get(
   "/api/conversations",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.listConversations(req, res);
   })
@@ -103,6 +112,7 @@ app.get(
 
 app.get(
   "/api/conversations/:id",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.getConversation(req, res);
   })
@@ -110,6 +120,7 @@ app.get(
 
 app.put(
   "/api/conversations/:id/title",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.updateConversationTitle(req, res);
   })
@@ -117,6 +128,7 @@ app.put(
 
 app.delete(
   "/api/conversations/:id",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.deleteConversation(req, res);
   })
@@ -124,6 +136,7 @@ app.delete(
 
 app.post(
   "/api/conversations/messages",
+  apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.saveMessage(req, res);
   })

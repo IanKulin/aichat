@@ -6,7 +6,10 @@ import fs from "fs";
 
 export type DatabaseConnection = Database.Database;
 
-const DB_PATH = path.join(process.cwd(), "data", "db", "chat.db");
+// Use test database when NODE_ENV is 'test'
+const dbFileName =
+  process.env.NODE_ENV === "test" ? "test-chat.db" : "chat.db";
+const DB_PATH = path.join(process.cwd(), "data", "db", dbFileName);
 
 let dbInstance: Database.Database | null = null;
 

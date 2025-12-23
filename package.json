@@ -6,7 +6,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "node --experimental-strip-types server.ts",
-    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "test": "NODE_ENV=test node --experimental-strip-types --test test/*.test.ts",
     "lint": "npx eslint . --ext .ts --fix --max-warnings 0",
     "format": "npx prettier *.ts lib/*.ts scripts/*.ts test/*.ts --write",
     "typecheck": "npx tsc --noEmit",
@@ -29,6 +29,7 @@
     "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.2.1",
     "highlight.js": "^11.11.1",
     "marked": "^16.1.2"
   },
