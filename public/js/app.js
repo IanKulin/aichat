@@ -197,8 +197,8 @@ function setupEventListeners() {
   // Provider selection change handler
   providerSelect.addEventListener("change", function() {
     setSelectedProvider(this.value);
-    if (selectedProvider) {
-      loadModelsForProvider(selectedProvider);
+    if (this.value) {
+      loadModelsForProvider(this.value);
       saveUserSelection();
     }
   });
