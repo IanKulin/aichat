@@ -87,7 +87,7 @@ The frontend is a single html page with:
 - `controllers/`: Route handlers that orchestrate services
 - `services/`: Business logic with dependency injection
 - `repositories/`: Data access layer for configuration and providers
-- `middleware/`: Cross-cutting concerns (error handling, validation, logging)
+- `middleware/`: Cross-cutting concerns (error handling, validation, logging, rate limiting)
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
 - `lib/container.ts`: Dependency injection container
 - `lib/logger.ts`: Simple logging wrapper using @iankulin/logger
@@ -95,6 +95,32 @@ The frontend is a single html page with:
 - `public/css/`: Stylesheets including app styles and third-party CSS (Highlight.js themes)
 - `public/js/`: JavaScript assets including third-party libraries (DOMPurify, Highlight.js)
 - `data/config/models.json`: Provider and model configuration
+
+## Middleware
+
+### Rate Limiting
+
+The application implements tiered rate limiting to protect against request loops, misbehaving clients, and resource exhaustion:
+
+**Rate Limit Tiers:**
+- **Chat endpoints** (`/api/chat`, `/api/generate-title`): 30 requests/minute per IP
+  - Rationale: Humans typically send 5-10 messages/minute, this provides 3x buffer
+- **API endpoints** (`/api/providers`, `/api/conversations/*`): 100 requests/minute per IP
+  - Rationale: Lighter operations for UI interactions and data fetching
+- **Health check** (`/api/health`): 200 requests/minute per IP
+  - Rationale: Allows frequent monitoring and status checks
+
+**Rate Limit Behavior:**
+- Uses 1-minute sliding windows per IP address
+- Returns `429 Too Many Requests` status when limits exceeded
+- Includes standard `RateLimit-*` headers in responses
+- Logs violations with IP, path, method, and timestamp
+- User-friendly error message: "Too many requests. Please wait a moment before trying again."
+
+**Implementation:**
+- Located in `middleware/rate-limiter.ts`
+- Uses `express-rate-limit` package with in-memory store
+- Applied per-route in `server.ts` before request handlers
 
 ## Configuration Management
 
@@ -113,6 +139,7 @@ Model configurations are stored in `data/config/models.json` with the following 
 
 - API key validation on startup with simplified format checking
 - Error messages sanitized to prevent exposure of internal details
+- **Rate limiting**: Tiered rate limits (30-200 req/min) per IP address to prevent abuse
 - CORS not explicitly configured (defaults to same-origin)
 - No authentication system - this is a basic application intended for self-hosting on local networks
 
