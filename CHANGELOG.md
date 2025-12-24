@@ -14,5 +14,6 @@
 - Rate limiting
 - Docker
 - Graceful shutdown
+- Old chat management
 
 

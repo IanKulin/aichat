@@ -5,7 +5,7 @@ import assert from "node:assert";
 import fs from "fs";
 import path from "path";
 import { SqliteChatRepository } from "../../repositories/SqliteChatRepository.ts";
-import { closeDatabase } from "../../lib/database.ts";
+import { closeDatabase, getDatabase } from "../../lib/database.ts";
 
 describe("SqliteChatRepository Tests", () => {
   let repository: SqliteChatRepository;
@@ -346,7 +346,7 @@ describe("SqliteChatRepository Tests", () => {
 
     it("should maintain data consistency during conversation deletion", async () => {
       const conversation = await repository.createConversation({ title: "Consistency Test" });
-      
+
       // Add multiple messages
       for (let i = 0; i < 5; i++) {
         await repository.saveMessage({
@@ -355,15 +355,110 @@ describe("SqliteChatRepository Tests", () => {
           content: `Message ${i}`
         });
       }
-      
+
       // Delete conversation should also delete all messages atomically
       await repository.deleteConversation(conversation.id);
-      
+
       const deletedConversation = await repository.getConversation(conversation.id);
       const orphanedMessages = await repository.getMessages(conversation.id);
-      
+
       assert.strictEqual(deletedConversation, null, "Conversation should be deleted");
       assert.strictEqual(orphanedMessages.length, 0, "Messages should also be deleted");
+    });
+  });
+
+  describe("Cleanup operations", () => {
+    it("should delete conversations older than threshold", async () => {
+      // Create old conversation (91 days ago)
+      const oldConv = await repository.createConversation({ title: "Old Conversation" });
+      const oldTimestamp = Date.now() - (91 * 24 * 60 * 60 * 1000);
+
+      // Manually update timestamp in DB to simulate old conversation
+      const db = getDatabase();
+      db.prepare('UPDATE conversations SET updated_at = ? WHERE id = ?')
+        .run(oldTimestamp, oldConv.id);
+
+      // Create recent conversation
+      const recentConv = await repository.createConversation({ title: "Recent Conversation" });
+
+      // Run cleanup with 90-day threshold
+      const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      const deletedCount = await repository.deleteOldConversations(cutoff);
+
+      assert.strictEqual(deletedCount, 1, "Should delete 1 old conversation");
+
+      // Verify old is gone, recent remains
+      const oldResult = await repository.getConversation(oldConv.id);
+      const recentResult = await repository.getConversation(recentConv.id);
+
+      assert.strictEqual(oldResult, null, "Old conversation should be deleted");
+      assert.ok(recentResult, "Recent conversation should remain");
+    });
+
+    it("should cascade delete messages with old conversations", async () => {
+      // Create old conversation with messages
+      const conv = await repository.createConversation({ title: "Old with messages" });
+      await repository.saveMessage({
+        conversationId: conv.id,
+        role: "user",
+        content: "Old message"
+      });
+
+      // Simulate old timestamp
+      const oldTimestamp = Date.now() - (91 * 24 * 60 * 60 * 1000);
+      const db = getDatabase();
+      db.prepare('UPDATE conversations SET updated_at = ? WHERE id = ?')
+        .run(oldTimestamp, conv.id);
+
+      // Run cleanup
+      const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      await repository.deleteOldConversations(cutoff);
+
+      // Verify messages are also deleted
+      const messages = await repository.getMessages(conv.id);
+      assert.strictEqual(messages.length, 0, "Messages should be cascade deleted");
+    });
+
+    it("should return 0 when no old conversations exist", async () => {
+      await repository.createConversation({ title: "Recent" });
+
+      const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      const deletedCount = await repository.deleteOldConversations(cutoff);
+
+      assert.strictEqual(deletedCount, 0, "Should delete 0 conversations");
+    });
+
+    it("should delete multiple old conversations", async () => {
+      // Create 3 old conversations
+      const oldTimestamp = Date.now() - (91 * 24 * 60 * 60 * 1000);
+      const db = getDatabase();
+
+      for (let i = 1; i <= 3; i++) {
+        const conv = await repository.createConversation({ title: `Old ${i}` });
+        db.prepare('UPDATE conversations SET updated_at = ? WHERE id = ?')
+          .run(oldTimestamp, conv.id);
+      }
+
+      // Create 2 recent conversations
+      await repository.createConversation({ title: "Recent 1" });
+      await repository.createConversation({ title: "Recent 2" });
+
+      // Run cleanup
+      const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      const deletedCount = await repository.deleteOldConversations(cutoff);
+
+      assert.strictEqual(deletedCount, 3, "Should delete 3 old conversations");
+
+      // Verify count
+      const remainingCount = await repository.getConversationCount();
+      assert.strictEqual(remainingCount, 2, "Should have 2 recent conversations remaining");
+    });
+
+    it("should handle cleanup with no conversations", async () => {
+      const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      const deletedCount = await repository.deleteOldConversations(cutoff);
+
+      assert.strictEqual(deletedCount, 0, "Should handle empty database gracefully");
     });
   });
 });

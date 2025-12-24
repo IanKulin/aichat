@@ -47,4 +47,5 @@ export abstract class ChatRepository {
   abstract getMessages(conversationId: string, limit?: number): Promise<PersistedMessage[]>;
   abstract deleteMessage(messageId: number): Promise<void>;
   abstract getConversationCount(): Promise<number>;
+  abstract deleteOldConversations(olderThanTimestamp: number): Promise<number>;
 }

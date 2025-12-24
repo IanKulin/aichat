@@ -253,8 +253,18 @@ export class SqliteChatRepository extends ChatRepository {
     const stmt = this.db.prepare(`
       SELECT COUNT(*) as count FROM conversations
     `);
-    
+
     const result = stmt.get() as { count: number };
     return result.count;
+  }
+
+  async deleteOldConversations(olderThanTimestamp: number): Promise<number> {
+    const stmt = this.db.prepare(`
+      DELETE FROM conversations
+      WHERE updated_at < ?
+    `);
+
+    const result = stmt.run(olderThanTimestamp);
+    return result.changes;
   }
 }

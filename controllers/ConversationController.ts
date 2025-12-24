@@ -21,6 +21,7 @@ export abstract class ConversationController {
   abstract updateConversationTitle(req: Request, res: Response): Promise<void>;
   abstract deleteConversation(req: Request, res: Response): Promise<void>;
   abstract saveMessage(req: Request, res: Response): Promise<void>;
+  abstract cleanupOldConversations?(req: Request, res: Response): Promise<void>;
 }
 
 export class DefaultConversationController extends ConversationController {
@@ -145,5 +146,24 @@ export class DefaultConversationController extends ConversationController {
 
     await this.chatService.saveMessageToConversation!(messageData);
     res.status(201).json({ success: true, message: "Message saved successfully" });
+  }
+
+  async cleanupOldConversations(req: Request, res: Response): Promise<void> {
+    const retentionDays = req.query.days
+      ? parseInt(req.query.days as string, 10)
+      : parseInt(process.env.CHAT_RETENTION_DAYS || '90', 10);
+
+    if (isNaN(retentionDays) || retentionDays < 1) {
+      res.status(400).json({ error: "Retention days must be a positive number" });
+      return;
+    }
+
+    const deletedCount = await this.chatService.cleanupOldConversations!(retentionDays);
+    res.json({
+      success: true,
+      deletedCount,
+      retentionDays,
+      message: `Deleted ${deletedCount} conversations older than ${retentionDays} days`
+    });
   }
 }
