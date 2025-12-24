@@ -58,28 +58,18 @@ Required environment variables (at least one must be set):
 - `PUT /api/conversations/:id/title`: Update conversation title (expects `{ title: string }`)
 - `DELETE /api/conversations/:id`: Delete conversation and all its messages
 - `POST /api/conversations/messages`: Save message to conversation
+- `POST /api/conversations/:id/branch`: Create a branch from an existing conversation at a specific message
 
 ## Frontend Architecture
 
-The frontend is a single html page with:
-- Conversation history stored in memory (`conversationHistory` array) with optional SQLite persistence
-- Provider and model selection dropdowns with localStorage persistence
-- Dark mode support via CSS media queries
-- Responsive design for mobile devices
-- Auto-resizing textarea for message input
-- Real-time message display with user/assistant/system message types
-- Chat persistence ready (backend implemented, frontend integration pending)
-
-## Key Features
-
-- Full conversation context is maintained and sent to providers
-- Uses the Vercel AI SDK to abstract calls to multiple providers
-- Dynamic provider/model selection with user preference persistence
-- **SQLite-based chat persistence**: Conversations and messages stored persistently with full CRUD operations
-- **Conversation management**: Create, list, update, delete conversations with automatic timestamping
-- **Message history**: Complete message persistence with provider/model metadata
-- Simplified error handling and API key validation
-- Layered architecture with dependency injection for better maintainability
+The frontend is a single HTML page with modular JavaScript architecture:
+- **Modular JavaScript**: Code organized into separate modules (`app.js`, `api-client.js`, `chat.js`, `conversations.js`, `state.js`, `ui.js`)
+- **Conversation history**: Stored both in memory and SQLite database with UI for managing old conversations
+- **Provider and model selection**: Dropdowns with localStorage persistence
+- **Dark mode support**: Via CSS media queries
+- **Responsive design**: Mobile-friendly interface
+- **Auto-resizing textarea**: For message input
+- **Real-time message display**: Supports user/assistant/system message types with markdown rendering and syntax highlighting
 
 ## Code Structure
 
@@ -90,11 +80,20 @@ The frontend is a single html page with:
 - `middleware/`: Cross-cutting concerns (error handling, validation, logging, rate limiting)
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
 - `lib/container.ts`: Dependency injection container
+- `lib/database.ts`: SQLite database connection and initialization
 - `lib/logger.ts`: Simple logging wrapper using @iankulin/logger
 - `public/index.html`: Complete frontend HTML file
 - `public/css/`: Stylesheets including app styles and third-party CSS (Highlight.js themes)
-- `public/js/`: JavaScript assets including third-party libraries (DOMPurify, Highlight.js)
+- `public/js/`: JavaScript assets including:
+  - `app.js`: Main application initialization and provider/model management
+  - `api-client.js`: API communication layer
+  - `chat.js`: Chat message handling and submission
+  - `conversations.js`: Conversation management UI (list, load, delete, branch)
+  - `state.js`: Application state management
+  - `ui.js`: UI helper functions (message rendering, formatting)
+  - `purify.min.js`, `highlight.min.js`: Third-party libraries
 - `data/config/models.json`: Provider and model configuration
+- `data/db/chat.db`: SQLite database for conversation persistence
 
 ## Middleware
 
@@ -104,18 +103,8 @@ The application implements tiered rate limiting to protect against request loops
 
 **Rate Limit Tiers:**
 - **Chat endpoints** (`/api/chat`, `/api/generate-title`): 30 requests/minute per IP
-  - Rationale: Humans typically send 5-10 messages/minute, this provides 3x buffer
 - **API endpoints** (`/api/providers`, `/api/conversations/*`): 100 requests/minute per IP
-  - Rationale: Lighter operations for UI interactions and data fetching
 - **Health check** (`/api/health`): 200 requests/minute per IP
-  - Rationale: Allows frequent monitoring and status checks
-
-**Rate Limit Behavior:**
-- Uses 1-minute sliding windows per IP address
-- Returns `429 Too Many Requests` status when limits exceeded
-- Includes standard `RateLimit-*` headers in responses
-- Logs violations with IP, path, method, and timestamp
-- User-friendly error message: "Too many requests. Please wait a moment before trying again."
 
 **Implementation:**
 - Located in `middleware/rate-limiter.ts`
@@ -134,6 +123,23 @@ Model configurations are stored in `data/config/models.json` with the following 
   }
 }
 ```
+
+## Docker Deployment
+
+The application includes Docker support for easy deployment:
+
+**Docker Image:**
+- Available at `ghcr.io/iankulin/aichat`
+- Exposes port 3000
+
+**Docker Compose** (recommended):
+   ```bash
+   docker-compose up -d
+   ```
+**Volume Mounting:**
+- Mount `./data` to `/app/data` to persist:
+  - SQLite database (`chat.db`)
+  - Model configurations (`models.json`)
 
 ## Security Considerations
 
