@@ -48,4 +48,9 @@ export abstract class ChatRepository {
   abstract deleteMessage(messageId: number): Promise<void>;
   abstract getConversationCount(): Promise<number>;
   abstract deleteOldConversations(olderThanTimestamp: number): Promise<number>;
+  abstract branchConversation(
+    sourceConversationId: string,
+    upToTimestamp: number,
+    newTitle: string
+  ): Promise<ConversationWithMessages>;
 }

@@ -51,6 +51,11 @@ export abstract class ChatService {
   abstract deleteConversation?(id: string): Promise<void>;
   abstract saveMessageToConversation?(data: SaveMessageData): Promise<void>;
   abstract cleanupOldConversations?(retentionDays: number): Promise<number>;
+  abstract branchConversation?(
+    sourceConversationId: string,
+    upToTimestamp: number,
+    newTitle: string
+  ): Promise<ConversationWithMessages>;
 }
 
 export class DefaultChatService extends ChatService {
@@ -237,5 +242,20 @@ export class DefaultChatService extends ChatService {
 
     const deletedCount = await this.chatRepository.deleteOldConversations(cutoffTimestamp);
     return deletedCount;
+  }
+
+  async branchConversation(
+    sourceConversationId: string,
+    upToTimestamp: number,
+    newTitle: string
+  ): Promise<ConversationWithMessages> {
+    if (!this.chatRepository) {
+      throw new Error("Chat repository not configured for persistence");
+    }
+    return await this.chatRepository.branchConversation(
+      sourceConversationId,
+      upToTimestamp,
+      newTitle
+    );
   }
 }

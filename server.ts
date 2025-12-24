@@ -158,6 +158,14 @@ app.delete(
 );
 
 app.post(
+  "/api/conversations/:id/branch",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await conversationController.branchConversation(req, res);
+  })
+);
+
+app.post(
   "/api/conversations/messages",
   apiLimiter,
   asyncHandler(async (req, res) => {

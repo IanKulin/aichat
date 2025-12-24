@@ -15,5 +15,6 @@
 - Docker
 - Graceful shutdown
 - Old chat management
+- Chat branching
 
 
