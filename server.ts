@@ -9,6 +9,7 @@ import {
   getProviderController,
   getHealthController,
   getConversationController,
+  getChatService,
 } from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
 import {
@@ -63,6 +64,27 @@ if (availableProviders.length === 0) {
   logger.warn("   Example: export OPENAI_API_KEY=sk-your-key-here");
 } else {
   logger.info(`Valid providers: ${availableProviders.join(", ")}`);
+}
+
+// Startup cleanup for old conversations
+const enableStartupCleanup = process.env.ENABLE_STARTUP_CLEANUP !== "false";
+const retentionDays = parseInt(process.env.CHAT_RETENTION_DAYS || "90", 10);
+
+if (enableStartupCleanup) {
+  const chatService = getChatService();
+  setImmediate(async () => {
+    try {
+      const deletedCount =
+        await chatService.cleanupOldConversations!(retentionDays);
+      if (deletedCount > 0) {
+        logger.info(
+          `Startup cleanup: Deleted ${deletedCount} conversations older than ${retentionDays} days`
+        );
+      }
+    } catch (error) {
+      logger.error("Startup cleanup failed:", error);
+    }
+  });
 }
 
 // Chat endpoint with multi-provider support
@@ -136,10 +158,26 @@ app.delete(
 );
 
 app.post(
+  "/api/conversations/:id/branch",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await conversationController.branchConversation(req, res);
+  })
+);
+
+app.post(
   "/api/conversations/messages",
   apiLimiter,
   asyncHandler(async (req, res) => {
     await conversationController.saveMessage(req, res);
+  })
+);
+
+app.post(
+  "/api/conversations/cleanup",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await conversationController.cleanupOldConversations!(req, res);
   })
 );
 

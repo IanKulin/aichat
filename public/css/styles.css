@@ -457,11 +457,43 @@ body {
 }
 
 .message.assistant {
+  position: relative;
   background-color: var(--msg-assistant-bg);
   color: var(--msg-assistant-text);
   margin-right: auto;
   border-bottom-left-radius: var(--radius-sm);
   transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* Branch button styling */
+.branch-button {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.branch-button:hover {
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  border-color: var(--primary-color);
+}
+
+.branch-button.branching {
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  cursor: wait;
 }
 
 

@@ -13,7 +13,7 @@ import {
   setConversationList,
   setConversationHistory
 } from './state.js';
-import { addMessage, showError, showSuccess, showConversationLoader, hideConversationLoader, addCopyButtonsToCodeBlocks } from './ui.js';
+import { addMessage, showError, showSuccess, showConversationLoader, hideConversationLoader, addCopyButtonsToCodeBlocks, addBranchButtonsToMessages } from './ui.js';
 
 export async function clearConversation() {
   // Reset conversation state
@@ -101,11 +101,20 @@ export async function loadConversation(conversationId) {
           providerName: msg.provider,
           model: msg.model
         } : null;
-        addMessage(msg.content, msg.role, metadata);
+
+        // Pass timestamp for assistant messages to enable branching
+        const messageTimestamp = msg.role === 'assistant' && msg.timestamp
+          ? new Date(msg.timestamp).getTime()
+          : null;
+
+        addMessage(msg.content, msg.role, metadata, messageTimestamp);
       });
 
       // Add copy buttons to any code blocks from loaded conversation
       addCopyButtonsToCodeBlocks();
+
+      // Add branch buttons to all assistant messages except the last one
+      addBranchButtonsToMessages();
     }
 
     // Update UI
@@ -154,6 +163,56 @@ export async function deleteConversation(id) {
   } catch (error) {
     console.error('Failed to delete conversation:', error);
     showError('Failed to delete conversation');
+  }
+}
+
+export async function handleBranchClick(messageTimestamp) {
+  try {
+    const currentConversation = getCurrentConversation();
+
+    if (!currentConversation) {
+      showError('No active conversation to branch from');
+      return;
+    }
+
+    if (!messageTimestamp || messageTimestamp <= 0) {
+      showError('Invalid message timestamp');
+      return;
+    }
+
+    const newTitle = currentConversation.title + ' (Branch)';
+
+    // Show loading state
+    const branchButtons = document.querySelectorAll('.branch-button');
+    branchButtons.forEach(btn => {
+      if (btn.getAttribute('data-timestamp') === String(messageTimestamp)) {
+        btn.classList.add('branching');
+        btn.textContent = 'Branching...';
+      }
+    });
+
+    // Call API
+    const conversationAPI = getConversationAPI();
+    const branchedConversation = await conversationAPI.branchConversation(
+      currentConversation.id,
+      messageTimestamp,
+      newTitle
+    );
+
+    // Load new conversation
+    await loadConversation(branchedConversation.id);
+    showSuccess('Conversation branched successfully');
+
+  } catch (error) {
+    console.error('Failed to branch conversation:', error);
+    showError('Failed to branch conversation');
+
+    // Reset button state
+    const branchButtons = document.querySelectorAll('.branch-button.branching');
+    branchButtons.forEach(btn => {
+      btn.classList.remove('branching');
+      btn.innerHTML = '⎇ Branch';
+    });
   }
 }
 

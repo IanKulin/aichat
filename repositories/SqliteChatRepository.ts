@@ -249,12 +249,132 @@ export class SqliteChatRepository extends ChatRepository {
     }
   }
 
+  async branchConversation(
+    sourceConversationId: string,
+    upToTimestamp: number,
+    newTitle: string
+  ): Promise<ConversationWithMessages> {
+    // Validation
+    if (!sourceConversationId) {
+      throw new Error("Source conversation ID is required");
+    }
+    if (upToTimestamp <= 0) {
+      throw new Error("Invalid timestamp: must be greater than 0");
+    }
+    if (!newTitle || newTitle.trim() === "") {
+      throw new Error("New title cannot be empty");
+    }
+
+    // Create transaction for atomic operation
+    const transaction = this.db.transaction(() => {
+      // 1. Fetch source conversation to validate it exists
+      const conversationStmt = this.db.prepare(`
+        SELECT id, title, created_at, updated_at
+        FROM conversations
+        WHERE id = ?
+      `);
+      const conversationRow = conversationStmt.get(sourceConversationId) as ConversationRow | undefined;
+
+      if (!conversationRow) {
+        throw new Error(`Conversation with id ${sourceConversationId} not found`);
+      }
+
+      // 2. Fetch messages up to the specified timestamp
+      const messagesStmt = this.db.prepare(`
+        SELECT id, conversation_id, role, content, timestamp, provider, model
+        FROM messages
+        WHERE conversation_id = ? AND timestamp <= ?
+        ORDER BY timestamp ASC
+      `);
+      const messageRows = messagesStmt.all(sourceConversationId, upToTimestamp) as MessageRow[];
+
+      if (messageRows.length === 0) {
+        throw new Error("No messages found at or before the specified timestamp");
+      }
+
+      // 3. Create new conversation
+      const newId = randomUUID();
+      const now = Date.now();
+
+      const createConversationStmt = this.db.prepare(`
+        INSERT INTO conversations (id, title, created_at, updated_at)
+        VALUES (?, ?, ?, ?)
+      `);
+      createConversationStmt.run(newId, newTitle, now, now);
+
+      // 4. Copy messages preserving relative timing
+      const baseTimestamp = Date.now();
+      const timeOffset = baseTimestamp - messageRows[0].timestamp;
+
+      const insertMessageStmt = this.db.prepare(`
+        INSERT INTO messages (conversation_id, role, content, timestamp, provider, model)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const messageRow of messageRows) {
+        const newTimestamp = messageRow.timestamp + timeOffset;
+        insertMessageStmt.run(
+          newId,
+          messageRow.role,
+          messageRow.content,
+          newTimestamp,
+          messageRow.provider,
+          messageRow.model
+        );
+      }
+
+      // 5. Return the new conversation with messages
+      const newConversation: Conversation = {
+        id: newId,
+        title: newTitle,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      };
+
+      const newMessages: PersistedMessage[] = messageRows.map((row, index) => ({
+        id: index + 1, // Temporary ID, will be replaced by actual DB ID
+        conversationId: newId,
+        role: row.role as "user" | "assistant" | "system",
+        content: row.content,
+        timestamp: new Date(row.timestamp + timeOffset),
+        provider: row.provider || undefined,
+        model: row.model || undefined,
+      }));
+
+      return {
+        ...newConversation,
+        messages: newMessages,
+      };
+    });
+
+    // Execute transaction and return result
+    const result = transaction();
+
+    // Fetch the actual conversation with proper message IDs from the database
+    const actualConversation = await this.getConversation(result.id);
+    if (!actualConversation) {
+      throw new Error("Failed to retrieve newly branched conversation");
+    }
+
+    return actualConversation;
+  }
+
   async getConversationCount(): Promise<number> {
     const stmt = this.db.prepare(`
       SELECT COUNT(*) as count FROM conversations
     `);
-    
+
     const result = stmt.get() as { count: number };
     return result.count;
+  }
+
+  async deleteOldConversations(olderThanTimestamp: number): Promise<number> {
+    const stmt = this.db.prepare(`
+      DELETE FROM conversations
+      WHERE updated_at < ?
+    `);
+
+    const result = stmt.run(olderThanTimestamp);
+    return result.changes;
   }
 }

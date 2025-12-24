@@ -97,6 +97,32 @@ class ConversationAPI {
   }
 
   /**
+   * Branch conversation from a specific message timestamp
+   * @param {string} sourceConversationId - Source conversation ID
+   * @param {number} upToTimestamp - Timestamp to branch up to
+   * @param {string} newTitle - Title for the branched conversation
+   * @returns {Promise<Object>} Branched conversation with messages
+   */
+  async branchConversation(sourceConversationId, upToTimestamp, newTitle) {
+    const response = await fetch(
+      `${this.baseURL}/conversations/${sourceConversationId}/branch`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ upToTimestamp, newTitle }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to branch conversation: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * Save message to conversation
    * @param {string} conversationId - Conversation ID
    * @param {string} role - Message role (user, assistant, system)

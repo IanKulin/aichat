@@ -1,9 +1,14 @@
 // UI helper functions
 import { chatContainer, setConversationList } from './state.js';
 
-export function addMessage(content, type = "user", metadata = null) {
+export function addMessage(content, type = "user", metadata = null, messageTimestamp = null) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${type}`;
+
+  // Add timestamp data attribute if provided
+  if (messageTimestamp) {
+    messageDiv.setAttribute('data-timestamp', messageTimestamp);
+  }
 
   if (type === "assistant" && metadata) {
     // Create content with provider info
@@ -26,9 +31,73 @@ export function addMessage(content, type = "user", metadata = null) {
   if (type === "assistant") {
     hljs.highlightAll();
     addCopyButtonsToCodeBlocks();
+
+    // Add branch button to previous assistant message (if any)
+    addButtonToPreviousAssistant();
   }
 
   scrollToBottom();
+}
+
+/**
+ * Add branch button to a message div
+ * @param {HTMLElement} messageDiv - Message div element
+ * @param {number} messageTimestamp - Message timestamp
+ */
+export function addBranchButton(messageDiv, messageTimestamp) {
+  // Don't add button if already exists
+  if (messageDiv.querySelector('.branch-button')) {
+    return;
+  }
+
+  const branchButton = document.createElement('button');
+  branchButton.className = 'branch-button';
+  branchButton.innerHTML = '⎇ Branch';
+  branchButton.setAttribute('data-timestamp', messageTimestamp);
+
+  branchButton.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const { handleBranchClick } = await import('./conversations.js');
+    await handleBranchClick(messageTimestamp);
+  });
+
+  messageDiv.appendChild(branchButton);
+}
+
+/**
+ * Helper to add button to previous assistant message when new one arrives
+ */
+function addButtonToPreviousAssistant() {
+  const assistantMessages = document.querySelectorAll('.message.assistant');
+  if (assistantMessages.length >= 2) {
+    // Get second-to-last assistant message
+    const previousAssistant = assistantMessages[assistantMessages.length - 2];
+    const timestamp = previousAssistant.getAttribute('data-timestamp');
+    if (timestamp && !previousAssistant.querySelector('.branch-button')) {
+      addBranchButton(previousAssistant, parseInt(timestamp));
+    }
+  }
+}
+
+/**
+ * Add branch buttons to all assistant messages except the last one
+ * Useful after loading a conversation
+ */
+export function addBranchButtonsToMessages() {
+  const assistantMessages = document.querySelectorAll('.message.assistant');
+
+  // Add buttons to all except the last assistant message
+  assistantMessages.forEach((messageDiv, index) => {
+    // Skip the last assistant message
+    if (index === assistantMessages.length - 1) {
+      return;
+    }
+
+    const timestamp = messageDiv.getAttribute('data-timestamp');
+    if (timestamp && !messageDiv.querySelector('.branch-button')) {
+      addBranchButton(messageDiv, parseInt(timestamp));
+    }
+  });
 }
 
 export function addError(message) {
@@ -66,12 +135,16 @@ export function addSkeletonMessage() {
   scrollToBottom();
 }
 
-export function transformSkeletonToMessage(content, metadata = null) {
+export function transformSkeletonToMessage(content, metadata = null, messageTimestamp = null) {
   const skeletonMessage = document.getElementById("skeleton-message");
   if (!skeletonMessage) return null;
 
   const skeletonContent = skeletonMessage.querySelector('.skeleton-content');
   const messageContent = skeletonMessage.querySelector('.message-content');
+
+  // Set timestamp if provided (for branching functionality)
+  const timestamp = messageTimestamp || Date.now();
+  skeletonMessage.setAttribute('data-timestamp', timestamp);
 
   // Prepare the actual message content
   if (metadata) {
@@ -108,6 +181,9 @@ export function transformSkeletonToMessage(content, metadata = null) {
     // Apply syntax highlighting to any new code blocks
     hljs.highlightAll();
     addCopyButtonsToCodeBlocks();
+
+    // Add branch button to previous assistant message (if any)
+    addButtonToPreviousAssistant();
 
     // Remove skeleton content after transition
     setTimeout(() => {

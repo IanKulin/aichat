@@ -14,6 +14,11 @@ interface UpdateConversationTitleRequest {
   title: string;
 }
 
+interface BranchConversationRequest {
+  upToTimestamp: number;
+  newTitle: string;
+}
+
 export abstract class ConversationController {
   abstract createConversation(req: Request, res: Response): Promise<void>;
   abstract getConversation(req: Request, res: Response): Promise<void>;
@@ -21,6 +26,8 @@ export abstract class ConversationController {
   abstract updateConversationTitle(req: Request, res: Response): Promise<void>;
   abstract deleteConversation(req: Request, res: Response): Promise<void>;
   abstract saveMessage(req: Request, res: Response): Promise<void>;
+  abstract cleanupOldConversations?(req: Request, res: Response): Promise<void>;
+  abstract branchConversation(req: Request, res: Response): Promise<void>;
 }
 
 export class DefaultConversationController extends ConversationController {
@@ -145,5 +152,69 @@ export class DefaultConversationController extends ConversationController {
 
     await this.chatService.saveMessageToConversation!(messageData);
     res.status(201).json({ success: true, message: "Message saved successfully" });
+  }
+
+  async cleanupOldConversations(req: Request, res: Response): Promise<void> {
+    const retentionDays = req.query.days
+      ? parseInt(req.query.days as string, 10)
+      : parseInt(process.env.CHAT_RETENTION_DAYS || '90', 10);
+
+    if (isNaN(retentionDays) || retentionDays < 1) {
+      res.status(400).json({ error: "Retention days must be a positive number" });
+      return;
+    }
+
+    const deletedCount = await this.chatService.cleanupOldConversations!(retentionDays);
+    res.json({
+      success: true,
+      deletedCount,
+      retentionDays,
+      message: `Deleted ${deletedCount} conversations older than ${retentionDays} days`
+    });
+  }
+
+  async branchConversation(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { upToTimestamp, newTitle }: BranchConversationRequest = req.body;
+
+    // Validate conversation ID
+    if (!id || typeof id !== 'string') {
+      res.status(400).json({ error: "Conversation ID is required" });
+      return;
+    }
+
+    // Validate upToTimestamp
+    if (typeof upToTimestamp !== 'number' || upToTimestamp <= 0) {
+      res.status(400).json({ error: "upToTimestamp must be a positive number" });
+      return;
+    }
+
+    // Validate newTitle
+    if (!newTitle || typeof newTitle !== 'string' || newTitle.trim().length === 0) {
+      res.status(400).json({ error: "newTitle is required and must be a non-empty string" });
+      return;
+    }
+
+    try {
+      const branchedConversation = await this.chatService.branchConversation!(
+        id,
+        upToTimestamp,
+        newTitle.trim()
+      );
+      res.status(201).json(branchedConversation);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          res.status(404).json({ error: error.message });
+          return;
+        }
+        if (error.message.includes("No messages found") ||
+            error.message.includes("Invalid timestamp")) {
+          res.status(400).json({ error: error.message });
+          return;
+        }
+      }
+      throw error;
+    }
   }
 }
