@@ -5,6 +5,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import type { LanguageModel } from "ai";
 import {
   SUPPORTED_PROVIDERS,
   getProviderDisplayName,
@@ -14,7 +15,7 @@ import {
 import type { SupportedProvider, ApiKeyValidation } from "../lib/types.ts";
 import type { ISettingsRepository } from "./SettingsRepository.ts";
 
-export type ProviderInstance = unknown;
+export type ProviderInstance = LanguageModel;
 
 export abstract class ProviderRepository {
   abstract getProvider(
