@@ -5,6 +5,7 @@ import { ChatService } from "../services/ChatService.ts";
 import { ProviderService } from "../services/ProviderService.ts";
 import { ConfigService } from "../services/ConfigService.ts";
 import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
+import { logger } from "../lib/logger.ts";
 
 interface ChatRequest {
   messages: ChatMessage[];
@@ -131,7 +132,7 @@ ${firstMessage}`;
         res.json({ title: fallbackTitle || "Chat" });
       }
     } catch (error) {
-      console.error("Error generating title:", error);
+      logger.error("Error generating title:", error);
       res.status(500).json({ error: "Failed to generate title" });
     }
   }

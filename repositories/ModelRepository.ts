@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
 import type { ProviderConfig } from "../lib/types.ts";
+import { logger } from "../lib/logger.ts";
 
 export type ModelsConfig = {
   [key: string]: ProviderConfig;
@@ -38,12 +39,12 @@ export class FileModelRepository extends ModelRepository {
       return configs;
     } catch (error) {
       if (error instanceof Error) {
-        console.error(
+        logger.error(
           "FATAL: Invalid models.json configuration:",
           error.message
         );
       } else {
-        console.error(
+        logger.error(
           "FATAL: An unknown error occurred while loading configuration."
         );
       }

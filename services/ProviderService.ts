@@ -3,6 +3,7 @@
 import { ConfigService } from "./ConfigService.ts";
 import { ProviderRepository } from "../repositories/ProviderRepository.ts";
 import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
+import { logger } from "../lib/logger.ts";
 
 // Import shared types
 import type {
@@ -102,7 +103,7 @@ export class DefaultProviderService extends ProviderService {
       model.includes("-exp") ||
       model.includes("-experimental")
     ) {
-      console.warn(
+      logger.warn(
         `Model '${model}' for ${provider} appears to be experimental.`
       );
     }
