@@ -2,7 +2,8 @@
 
 import fs from "fs";
 import path from "path";
-import type { SupportedProvider, ProviderConfig } from "../lib/types.ts";
+import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
+import type { ProviderConfig } from "../lib/types.ts";
 
 export type ModelsConfig = {
   [key: string]: ProviderConfig;
@@ -48,15 +49,7 @@ export class FileModelRepository extends ModelRepository {
   }
 
   validateModelsConfig(data: Record<string, unknown>): boolean {
-    const requiredProviders: SupportedProvider[] = [
-      "openai",
-      "anthropic",
-      "google",
-      "deepseek",
-      "openrouter",
-    ];
-
-    for (const provider of requiredProviders) {
+    for (const provider of SUPPORTED_PROVIDERS) {
       if (!data[provider]) {
         throw new Error(`Missing required provider: ${provider}`);
       }

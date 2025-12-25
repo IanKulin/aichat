@@ -48,7 +48,10 @@
       "mcp__playwright__playwright_hover",
       "mcp__playwright__playwright_evaluate",
       "Bash(grep:*)",
-      "Bash(NODE_ENV=test node --experimental-strip-types --test:*)"
+      "Bash(NODE_ENV=test node --experimental-strip-types --test:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

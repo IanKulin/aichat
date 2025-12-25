@@ -1,11 +1,6 @@
 // lib/types.ts - Shared type definitions for the application
 
-export type SupportedProvider =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "deepseek"
-  | "openrouter";
+export type { SupportedProvider } from "./provider-metadata.ts";
 
 export type ChatMessage = {
   role: "user" | "assistant" | "system";
@@ -16,6 +11,7 @@ export type ProviderConfig = {
   name: string;
   models: string[];
   defaultModel: string;
+  testModel: string;
 };
 
 export type ApiKeyValidation = {
@@ -28,4 +24,11 @@ export type ProviderInfo = {
   name: string;
   models: string[];
   defaultModel: string;
+};
+
+export type ApiKeyStatus = {
+  configured: boolean;
+  maskedKey?: string;
+  valid?: boolean;
+  lastValidated?: number;
 };

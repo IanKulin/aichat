@@ -65,20 +65,30 @@ function initializeSchema(db: Database.Database): void {
     )
   `;
 
+  // Create settings table
+  const createSettingsTable = `
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `;
+
   // Create indexes for better performance
   const createConversationUpdatedIndex = `
-    CREATE INDEX IF NOT EXISTS idx_conversations_updated_at 
+    CREATE INDEX IF NOT EXISTS idx_conversations_updated_at
     ON conversations (updated_at DESC)
   `;
 
   const createMessagesConversationIndex = `
-    CREATE INDEX IF NOT EXISTS idx_messages_conversation_id 
+    CREATE INDEX IF NOT EXISTS idx_messages_conversation_id
     ON messages (conversation_id, timestamp)
   `;
 
   // Execute schema creation
   db.exec(createConversationsTable);
   db.exec(createMessagesTable);
+  db.exec(createSettingsTable);
   db.exec(createConversationUpdatedIndex);
   db.exec(createMessagesConversationIndex);
 }

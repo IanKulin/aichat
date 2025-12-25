@@ -24,8 +24,8 @@ describe('ProviderService Tests', () => {
         },
         google: {
           name: 'Google',
-          models: ['gemini-1.5-flash', 'gemini-1.5-pro'],
-          defaultModel: 'gemini-1.5-flash'
+          models: ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro'],
+          defaultModel: 'gemini-2.5-flash-lite'
         },
         deepseek: {
           name: 'DeepSeek',
@@ -113,7 +113,7 @@ describe('ProviderService Tests', () => {
       assert.ok(googleInfo)
       assert.strictEqual(googleInfo.name, 'Google')
       assert.ok(Array.isArray(googleInfo.models))
-      assert.strictEqual(googleInfo.defaultModel, 'gemini-1.5-flash')
+      assert.strictEqual(googleInfo.defaultModel, 'gemini-2.5-flash-lite')
       
       // Anthropic is not included because it doesn't have a valid API key
       const anthropicInfo = info.find(p => p.id === 'anthropic')
@@ -178,9 +178,9 @@ describe('ProviderService Tests', () => {
       assert.ok(anthropicModel)
       assert.strictEqual(anthropicModel.modelId, 'claude-3-5-haiku-20241022')
       
-      const googleModel = providerService.getProviderModel('google', 'gemini-1.5-flash')
+      const googleModel = providerService.getProviderModel('google', 'gemini-2.5-flash-lite')
       assert.ok(googleModel)
-      assert.strictEqual(googleModel.modelId, 'gemini-1.5-flash')
+      assert.strictEqual(googleModel.modelId, 'gemini-2.5-flash-lite')
     })
   })
 

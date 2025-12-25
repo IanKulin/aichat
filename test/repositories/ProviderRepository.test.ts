@@ -2,12 +2,43 @@ import { test, describe } from 'node:test'
 import assert from 'node:assert'
 import { DefaultProviderRepository } from '../../repositories/ProviderRepository.ts'
 import { container } from '../../lib/container.ts'
+import type { ISettingsRepository } from '../../repositories/SettingsRepository.ts'
+import type { SupportedProvider } from '../../lib/types.ts'
 
 describe('ProviderRepository Tests', () => {
   let providerRepository: DefaultProviderRepository
+  let mockSettingsRepository: ISettingsRepository
+
+  const createMockSettingsRepository = (): ISettingsRepository => {
+    const apiKeys: Record<string, string | null> = {
+      openai: null,
+      anthropic: null,
+      google: null,
+      deepseek: null,
+      openrouter: null,
+    }
+
+    return {
+      getApiKey: (provider: SupportedProvider) => apiKeys[provider] || null,
+      setApiKey: (provider: SupportedProvider, key: string) => {
+        apiKeys[provider] = key
+      },
+      getAllApiKeys: () => ({
+        openai: apiKeys.openai,
+        anthropic: apiKeys.anthropic,
+        google: apiKeys.google,
+        deepseek: apiKeys.deepseek,
+        openrouter: apiKeys.openrouter,
+      }),
+      deleteApiKey: (provider: SupportedProvider) => {
+        apiKeys[provider] = null
+      },
+    }
+  }
 
   const setupRepository = () => {
-    providerRepository = new DefaultProviderRepository()
+    mockSettingsRepository = createMockSettingsRepository()
+    providerRepository = new DefaultProviderRepository(mockSettingsRepository)
   }
 
   describe('validateApiKey() method', () => {
@@ -173,7 +204,7 @@ describe('ProviderRepository Tests', () => {
       setupRepository()
       
       try {
-        const provider = providerRepository.getProvider('google', 'gemini-1.5-flash')
+        const provider = providerRepository.getProvider('google', 'gemini-2.5-flash-lite')
         assert.ok(provider)
       } catch (error) {
         // Expected if no API key is configured
@@ -283,16 +314,242 @@ describe('ProviderRepository Tests', () => {
     })
   })
 
+  describe('syncKeysToEnvironment() method', () => {
+    test('should load keys from database to process.env on initialization', () => {
+      // Set up mock with API keys
+      mockSettingsRepository = createMockSettingsRepository()
+      mockSettingsRepository.setApiKey('openai', 'sk-test-openai-key-123456')
+      mockSettingsRepository.setApiKey('anthropic', 'sk-ant-test-anthropic-key')
+
+      // Clear environment variables first
+      delete process.env.OPENAI_API_KEY
+      delete process.env.ANTHROPIC_API_KEY
+
+      // Create repository - should sync keys to environment in constructor
+      providerRepository = new DefaultProviderRepository(mockSettingsRepository)
+
+      // Verify keys were loaded into process.env
+      assert.strictEqual(process.env.OPENAI_API_KEY, 'sk-test-openai-key-123456')
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, 'sk-ant-test-anthropic-key')
+    })
+
+    test('should only set environment variables for keys that exist in database', () => {
+      // Set up mock with only one key
+      mockSettingsRepository = createMockSettingsRepository()
+      mockSettingsRepository.setApiKey('google', 'test-google-key-123456')
+
+      // Clear environment variables
+      delete process.env.OPENAI_API_KEY
+      delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
+
+      // Create repository
+      providerRepository = new DefaultProviderRepository(mockSettingsRepository)
+
+      // Only Google key should be set
+      assert.strictEqual(process.env.GOOGLE_GENERATIVE_AI_API_KEY, 'test-google-key-123456')
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+    })
+
+    test('should load all provider keys correctly', () => {
+      // Set up mock with all providers
+      mockSettingsRepository = createMockSettingsRepository()
+      mockSettingsRepository.setApiKey('openai', 'sk-openai-123')
+      mockSettingsRepository.setApiKey('anthropic', 'sk-ant-123')
+      mockSettingsRepository.setApiKey('google', 'google-123')
+      mockSettingsRepository.setApiKey('deepseek', 'deepseek-123')
+      mockSettingsRepository.setApiKey('openrouter', 'sk-or-123')
+
+      // Clear all environment variables
+      delete process.env.OPENAI_API_KEY
+      delete process.env.ANTHROPIC_API_KEY
+      delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
+      delete process.env.DEEPSEEK_API_KEY
+      delete process.env.OPENROUTER_API_KEY
+
+      // Create repository
+      providerRepository = new DefaultProviderRepository(mockSettingsRepository)
+
+      // Verify all keys were loaded
+      assert.strictEqual(process.env.OPENAI_API_KEY, 'sk-openai-123')
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, 'sk-ant-123')
+      assert.strictEqual(process.env.GOOGLE_GENERATIVE_AI_API_KEY, 'google-123')
+      assert.strictEqual(process.env.DEEPSEEK_API_KEY, 'deepseek-123')
+      assert.strictEqual(process.env.OPENROUTER_API_KEY, 'sk-or-123')
+    })
+
+    test('should delete environment variable when key is null in database', () => {
+      // Set up environment with existing key
+      process.env.OPENAI_API_KEY = 'sk-old-key-should-be-deleted'
+
+      // Create repository with empty database (no keys)
+      mockSettingsRepository = createMockSettingsRepository()
+      providerRepository = new DefaultProviderRepository(mockSettingsRepository)
+
+      // Verify key was deleted from environment
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+    })
+
+    test('should delete all environment variables when database is empty', () => {
+      // Set up environment with multiple keys
+      process.env.OPENAI_API_KEY = 'sk-openai-old'
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-old'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'google-old'
+      process.env.DEEPSEEK_API_KEY = 'deepseek-old'
+      process.env.OPENROUTER_API_KEY = 'sk-or-old'
+
+      // Create repository with empty database
+      mockSettingsRepository = createMockSettingsRepository()
+      providerRepository = new DefaultProviderRepository(mockSettingsRepository)
+
+      // Verify all keys were deleted from environment
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, undefined)
+      assert.strictEqual(process.env.GOOGLE_GENERATIVE_AI_API_KEY, undefined)
+      assert.strictEqual(process.env.DEEPSEEK_API_KEY, undefined)
+      assert.strictEqual(process.env.OPENROUTER_API_KEY, undefined)
+    })
+  })
+
+  describe('reloadApiKeys() method', () => {
+    test('should clear cache and resync keys from database', () => {
+      setupRepository()
+
+      // Set initial key
+      process.env.OPENAI_API_KEY = 'sk-old-key-123'
+
+      // Update key in mock database
+      mockSettingsRepository.setApiKey('openai', 'sk-new-key-456')
+
+      // Reload keys
+      providerRepository.reloadApiKeys()
+
+      // Verify environment was updated
+      assert.strictEqual(process.env.OPENAI_API_KEY, 'sk-new-key-456')
+    })
+
+    test('should clear provider cache when reloading keys', () => {
+      setupRepository()
+
+      // Set up a key and get a provider to cache it
+      mockSettingsRepository.setApiKey('openai', 'sk-test-key-1234567890')
+      process.env.OPENAI_API_KEY = 'sk-test-key-1234567890'
+
+      try {
+        const provider1 = providerRepository.getProvider('openai', 'gpt-4o-mini')
+
+        // Reload keys (should clear cache)
+        providerRepository.reloadApiKeys()
+
+        // Get provider again - should be a fresh instance
+        const provider2 = providerRepository.getProvider('openai', 'gpt-4o-mini')
+
+        // Both should exist (cache was cleared and recreated)
+        assert.ok(provider1)
+        assert.ok(provider2)
+      } catch (error) {
+        // Expected if provider creation fails for other reasons
+        assert.ok(error instanceof Error)
+      }
+    })
+
+    test('should allow updating multiple keys at once', () => {
+      setupRepository()
+
+      // Set initial keys
+      process.env.OPENAI_API_KEY = 'sk-old-openai'
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-old'
+
+      // Update multiple keys in database
+      mockSettingsRepository.setApiKey('openai', 'sk-new-openai')
+      mockSettingsRepository.setApiKey('anthropic', 'sk-ant-new')
+      mockSettingsRepository.setApiKey('google', 'new-google-key')
+
+      // Reload all keys
+      providerRepository.reloadApiKeys()
+
+      // Verify all keys were updated
+      assert.strictEqual(process.env.OPENAI_API_KEY, 'sk-new-openai')
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, 'sk-ant-new')
+      assert.strictEqual(process.env.GOOGLE_GENERATIVE_AI_API_KEY, 'new-google-key')
+    })
+
+    test('should DELETE environment variable when key is removed from database', () => {
+      setupRepository()
+
+      // Set initial key in database AND environment
+      mockSettingsRepository.setApiKey('openai', 'sk-initial-key-123')
+      process.env.OPENAI_API_KEY = 'sk-initial-key-123'
+
+      // Verify key exists
+      assert.strictEqual(process.env.OPENAI_API_KEY, 'sk-initial-key-123')
+
+      // Delete key from database
+      mockSettingsRepository.deleteApiKey('openai')
+
+      // Reload keys - should DELETE the environment variable
+      providerRepository.reloadApiKeys()
+
+      // Verify environment variable was deleted (not just set to empty string)
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+    })
+
+    test('should DELETE all environment variables when all keys are removed', () => {
+      setupRepository()
+
+      // Set up multiple keys
+      mockSettingsRepository.setApiKey('openai', 'sk-openai-123')
+      mockSettingsRepository.setApiKey('anthropic', 'sk-ant-123')
+      mockSettingsRepository.setApiKey('google', 'google-123')
+      process.env.OPENAI_API_KEY = 'sk-openai-123'
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-123'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'google-123'
+
+      // Delete all keys from database
+      mockSettingsRepository.deleteApiKey('openai')
+      mockSettingsRepository.deleteApiKey('anthropic')
+      mockSettingsRepository.deleteApiKey('google')
+
+      // Reload keys
+      providerRepository.reloadApiKeys()
+
+      // Verify all environment variables were deleted
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, undefined)
+      assert.strictEqual(process.env.GOOGLE_GENERATIVE_AI_API_KEY, undefined)
+    })
+
+    test('should handle partial key deletion (keep some, delete others)', () => {
+      setupRepository()
+
+      // Set up multiple keys
+      mockSettingsRepository.setApiKey('openai', 'sk-openai-123')
+      mockSettingsRepository.setApiKey('anthropic', 'sk-ant-123')
+      process.env.OPENAI_API_KEY = 'sk-openai-123'
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-123'
+
+      // Delete only OpenAI key
+      mockSettingsRepository.deleteApiKey('openai')
+
+      // Reload keys
+      providerRepository.reloadApiKeys()
+
+      // Verify OpenAI was deleted but Anthropic remains
+      assert.strictEqual(process.env.OPENAI_API_KEY, undefined)
+      assert.strictEqual(process.env.ANTHROPIC_API_KEY, 'sk-ant-123')
+    })
+  })
+
   describe('Integration with DI Container', () => {
     test('should be resolvable from DI container', async () => {
       await import('../../lib/services.ts') // Initialize DI container
       const repository = container.resolve<DefaultProviderRepository>('ProviderRepository')
-      
+
       assert.ok(repository)
       assert.ok(typeof repository.validateApiKey === 'function')
       assert.ok(typeof repository.hasValidApiKey === 'function')
       assert.ok(typeof repository.getProvider === 'function')
       assert.ok(typeof repository.clearCache === 'function')
+      assert.ok(typeof repository.reloadApiKeys === 'function')
     })
   })
 })

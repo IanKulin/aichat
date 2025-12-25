@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - AI Chat</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/settings.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Settings</h1>
+      <a href="/" class="back-button">← Back to Chat</a>
+    </header>
+
+    <main>
+      <section class="settings-section">
+        <h2>API Keys</h2>
+        <p class="settings-description">
+          Configure your API keys for each provider. Keys are stored locally and never shared.
+        </p>
+
+        <div id="api-keys-container" class="api-keys">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/js/settings.js"></script>
+</body>
+</html>

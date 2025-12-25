@@ -16,7 +16,7 @@ describe('ChatService Tests', () => {
         const models = {
           'openai-gpt-4o-mini': { modelId: 'gpt-4o-mini' },
           'anthropic-claude-3-5-haiku-20241022': { modelId: 'claude-3-5-haiku-20241022' },
-          'google-gemini-1.5-flash': { modelId: 'gemini-1.5-flash' }
+          'google-gemini-2.5-flash-lite': { modelId: 'gemini-2.5-flash-lite' }
         }
         return models[`${provider}-${model}`] || { modelId: model }
       },
@@ -188,7 +188,7 @@ describe('ChatService Tests', () => {
       mockProviderService.getAvailableProviders = () => ['google']
 
       try {
-        await chatService.streamMessage(messages, 'google', 'gemini-1.5-flash')
+        await chatService.streamMessage(messages, 'google', 'gemini-2.5-flash-lite')
       } catch {
         assert.ok(getProviderModelCalled)
       }

@@ -2,6 +2,7 @@
 
 import { ConfigService } from "./ConfigService.ts";
 import { ProviderRepository } from "../repositories/ProviderRepository.ts";
+import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
 
 // Import shared types
 import type {
@@ -79,15 +80,7 @@ export class DefaultProviderService extends ProviderService {
   validateAllProviders(): Record<SupportedProvider, ApiKeyValidation> {
     const results = {} as Record<SupportedProvider, ApiKeyValidation>;
 
-    (
-      [
-        "openai",
-        "anthropic",
-        "google",
-        "deepseek",
-        "openrouter",
-      ] as SupportedProvider[]
-    ).forEach((provider) => {
+    SUPPORTED_PROVIDERS.forEach((provider) => {
       results[provider] = this.validateApiKey(provider);
     });
 

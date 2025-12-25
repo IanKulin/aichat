@@ -5,7 +5,14 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import {
+  SUPPORTED_PROVIDERS,
+  getProviderDisplayName,
+  getProviderEnvVar,
+  isValidProvider,
+} from "../lib/provider-metadata.ts";
 import type { SupportedProvider, ApiKeyValidation } from "../lib/types.ts";
+import type { ISettingsRepository } from "./SettingsRepository.ts";
 
 export type ProviderInstance = unknown;
 
@@ -14,10 +21,19 @@ export abstract class ProviderRepository {
   abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
   abstract hasValidApiKey(provider: SupportedProvider): boolean;
   abstract clearCache(): void;
+  abstract reloadApiKeys(): void;
 }
 
 export class DefaultProviderRepository extends ProviderRepository {
   private providerCache = new Map<string, ProviderInstance>();
+  private settingsRepository: ISettingsRepository;
+
+  constructor(settingsRepository: ISettingsRepository) {
+    super();
+    this.settingsRepository = settingsRepository;
+    // Load API keys from database into process.env on startup
+    this.syncKeysToEnvironment();
+  }
 
   getProvider(provider: SupportedProvider, model: string): ProviderInstance {
     const cacheKey = `${provider}:${model}`;
@@ -33,24 +49,17 @@ export class DefaultProviderRepository extends ProviderRepository {
   }
 
   validateApiKey(provider: SupportedProvider): ApiKeyValidation {
-    const keyMap = {
-      openai: process.env.OPENAI_API_KEY,
-      anthropic: process.env.ANTHROPIC_API_KEY,
-      google: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      deepseek: process.env.DEEPSEEK_API_KEY,
-      openrouter: process.env.OPENROUTER_API_KEY,
-    };
+    // Handle invalid providers gracefully (can happen at runtime despite type checking)
+    if (!isValidProvider(provider)) {
+      return {
+        valid: false,
+        message: `Unknown provider: ${provider}`,
+      };
+    }
 
-    const providerNames = {
-      openai: "OpenAI",
-      anthropic: "Anthropic",
-      google: "Google",
-      deepseek: "DeepSeek",
-      openrouter: "OpenRouter",
-    };
-
-    const apiKey = keyMap[provider];
-    const providerName = providerNames[provider];
+    const envVarName = getProviderEnvVar(provider);
+    const apiKey = process.env[envVarName];
+    const providerName = getProviderDisplayName(provider);
 
     if (!apiKey || apiKey.length < 10) {
       return {
@@ -68,6 +77,41 @@ export class DefaultProviderRepository extends ProviderRepository {
 
   clearCache(): void {
     this.providerCache.clear();
+  }
+
+  reloadApiKeys(): void {
+    // Clear cached provider instances
+    this.providerCache.clear();
+
+    // Reload keys from database into process.env
+    this.syncKeysToEnvironment();
+  }
+
+  /**
+   * Synchronizes API keys from database to process.env.
+   *
+   * When a key exists in the database, it is set in process.env.
+   * When a key is null/undefined in the database, it is explicitly deleted from process.env.
+   *
+   * This ensures database deletions immediately affect runtime behavior and the AI SDK
+   * receives up-to-date credentials.
+   *
+   * @private
+   */
+  private syncKeysToEnvironment(): void {
+    const keys = this.settingsRepository.getAllApiKeys();
+
+    // For each provider, set or delete the environment variable
+    SUPPORTED_PROVIDERS.forEach((provider) => {
+      const envVarName = getProviderEnvVar(provider);
+      const apiKey = keys[provider];
+
+      if (apiKey) {
+        process.env[envVarName] = apiKey;
+      } else {
+        delete process.env[envVarName];
+      }
+    });
   }
 
   private createProviderInstance(provider: SupportedProvider, model: string): ProviderInstance {

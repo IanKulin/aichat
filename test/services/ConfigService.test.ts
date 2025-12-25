@@ -23,8 +23,8 @@ describe('ConfigService Tests', () => {
         },
         google: {
           name: 'Google',
-          models: ['gemini-1.5-flash', 'gemini-1.5-pro'],
-          defaultModel: 'gemini-1.5-flash'
+          models: ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro'],
+          defaultModel: 'gemini-2.5-flash-lite'
         },
         deepseek: {
           name: 'DeepSeek',
