@@ -12,7 +12,7 @@ import {
   getConversationService,
   getSettingsController,
 } from "./lib/services.ts";
-import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
+import { errorHandler, asyncHandler } from "./middleware/error-handler.ts";
 import {
   validateChatRequest,
   validateJsonBody,

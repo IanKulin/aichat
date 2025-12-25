@@ -6,7 +6,7 @@ import request from "supertest";
 import express from "express";
 import { DefaultConversationController } from "../../controllers/ConversationController.ts";
 import type { ConversationService } from "../../services/ConversationService.ts";
-import { asyncHandler } from "../../middleware/errorHandler.ts";
+import { asyncHandler } from "../../middleware/error-handler.ts";
 
 // Mock ConversationService implementation
 class MockConversationService implements ConversationService {
