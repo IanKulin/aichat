@@ -51,7 +51,8 @@
       "Bash(NODE_ENV=test node --experimental-strip-types --test:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(wc:*)"
     ],
     "deny": []
   }
