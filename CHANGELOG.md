@@ -16,5 +16,8 @@
 - Graceful shutdown
 - Old chat management
 - Chat branching
+0.0.11
+- User Settings
+
 
 

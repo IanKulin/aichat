@@ -36,16 +36,32 @@ import {
   ConversationController,
   DefaultConversationController,
 } from "../controllers/ConversationController.ts";
+import { SettingsRepository } from "../repositories/SettingsRepository.ts";
+import type { ISettingsRepository } from "../repositories/SettingsRepository.ts";
+import {
+  SettingsService,
+  DefaultSettingsService,
+} from "../services/SettingsService.ts";
+import {
+  SettingsController,
+  DefaultSettingsController,
+} from "../controllers/SettingsController.ts";
 
 // Initialize services in the DI container
 export function initializeServices(): void {
   // Register repositories first
+  registerSingleton<ISettingsRepository>("SettingsRepository", () => {
+    return new SettingsRepository();
+  });
+
   registerSingleton<ModelRepository>("ModelRepository", () => {
     return new FileModelRepository();
   });
 
   registerSingleton<ProviderRepository>("ProviderRepository", () => {
-    return new DefaultProviderRepository();
+    const settingsRepository =
+      container.resolve<ISettingsRepository>("SettingsRepository");
+    return new DefaultProviderRepository(settingsRepository);
   });
 
   registerSingleton<ChatRepository>("ChatRepository", () => {
@@ -109,6 +125,27 @@ export function initializeServices(): void {
     const chatService = container.resolve<ChatService>("ChatService");
     return new DefaultConversationController(chatService);
   });
+
+  // Register SettingsService (depends on SettingsRepository, ProviderRepository, and ConfigService)
+  registerSingleton<SettingsService>("SettingsService", () => {
+    const settingsRepository =
+      container.resolve<ISettingsRepository>("SettingsRepository");
+    const providerRepository =
+      container.resolve<ProviderRepository>("ProviderRepository");
+    const configService = container.resolve<ConfigService>("ConfigService");
+    return new DefaultSettingsService(
+      settingsRepository,
+      providerRepository,
+      configService
+    );
+  });
+
+  // Register SettingsController (depends on SettingsService)
+  registerSingleton<SettingsController>("SettingsController", () => {
+    const settingsService =
+      container.resolve<SettingsService>("SettingsService");
+    return new DefaultSettingsController(settingsService);
+  });
 }
 
 // Helper functions to resolve services
@@ -142,6 +179,18 @@ export function getChatRepository(): ChatRepository {
 
 export function getConversationController(): ConversationController {
   return container.resolve<ConversationController>("ConversationController");
+}
+
+export function getSettingsRepository(): ISettingsRepository {
+  return container.resolve<ISettingsRepository>("SettingsRepository");
+}
+
+export function getSettingsService(): SettingsService {
+  return container.resolve<SettingsService>("SettingsService");
+}
+
+export function getSettingsController(): SettingsController {
+  return container.resolve<SettingsController>("SettingsController");
 }
 
 // Initialize services when this module is imported

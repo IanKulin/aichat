@@ -101,8 +101,8 @@ describe('ModelRepository Tests', () => {
         },
         google: {
           name: 'Google',
-          models: ['gemini-1.5-flash'],
-          defaultModel: 'gemini-1.5-flash'
+          models: ['gemini-2.5-flash-lite'],
+          defaultModel: 'gemini-2.5-flash-lite'
         },
         deepseek: {
           name: 'DeepSeek',

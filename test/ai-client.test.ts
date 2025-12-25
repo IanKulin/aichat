@@ -102,7 +102,7 @@ describe("AI Client Tests (DI Container)", () => {
       await setupServices();
       const config = configService.getProviderConfig("google");
       assert.strictEqual(config.name, "Google");
-      assert.strictEqual(config.defaultModel, "gemini-1.5-flash");
+      assert.strictEqual(config.defaultModel, "gemini-2.5-flash-lite");
       assert.ok(Array.isArray(config.models));
     });
 

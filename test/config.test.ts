@@ -76,10 +76,10 @@ describe("Configuration Tests (DI Container)", () => {
         "Google should have Gemini models"
       );
       assert.ok(
-        googleConfig.models.includes("gemini-1.5-flash"),
-        "Google should include gemini-1.5-flash"
+        googleConfig.models.includes("gemini-2.5-flash-lite"),
+        "Google should include gemini-2.5-flash-lite"
       );
-      assert.strictEqual(googleConfig.defaultModel, "gemini-1.5-flash");
+      assert.strictEqual(googleConfig.defaultModel, "gemini-2.5-flash-lite");
     });
 
     test("should have expected core models for Anthropic", async () => {

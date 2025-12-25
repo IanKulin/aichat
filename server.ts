@@ -10,6 +10,7 @@ import {
   getHealthController,
   getConversationController,
   getChatService,
+  getSettingsController,
 } from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
 import {
@@ -45,6 +46,7 @@ const chatController = getChatController();
 const providerController = getProviderController();
 const healthController = getHealthController();
 const conversationController = getConversationController();
+const settingsController = getSettingsController();
 
 // Validate API keys on startup
 const providerValidations = providerService.validateAllProviders();
@@ -180,6 +182,36 @@ app.post(
     await conversationController.cleanupOldConversations!(req, res);
   })
 );
+
+// Settings endpoints
+app.get(
+  "/api/settings/keys",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await settingsController.getApiKeys(req, res);
+  })
+);
+
+app.post(
+  "/api/settings/keys",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await settingsController.setApiKey(req, res);
+  })
+);
+
+app.delete(
+  "/api/settings/keys/:provider",
+  apiLimiter,
+  asyncHandler(async (req, res) => {
+    await settingsController.deleteApiKey(req, res);
+  })
+);
+
+// Serve settings page
+app.get("/settings.html", (req, res) => {
+  res.sendFile(join(__dirname, "public", "settings.html"));
+});
 
 // Error handling middleware
 app.use(errorHandler);

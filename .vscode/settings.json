@@ -17,7 +17,8 @@
     "openrouter",
     "pkill",
     "timestamping",
-    "tsparser"
+    "tsparser",
+    "unconfigured"
   ],
   "cSpell.ignorePaths": [
     "**/*.min.js",
