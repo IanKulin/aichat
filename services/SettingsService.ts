@@ -127,7 +127,7 @@ export class DefaultSettingsService extends SettingsService {
       // Make a minimal test call (using AI SDK's generateText)
       const { generateText } = await import("ai");
       await generateText({
-        model: providerInstance as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        model: providerInstance,
         prompt: "test",
       });
 
