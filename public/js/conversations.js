@@ -21,7 +21,7 @@ import {
   hideConversationLoader,
   addCopyButtonsToCodeBlocks,
   addBranchButtonsToMessages,
-} from "./ui.js";
+} from "./ui/index.js";
 
 export async function clearConversation() {
   // Reset conversation state

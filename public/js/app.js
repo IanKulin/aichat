@@ -20,7 +20,7 @@ import {
   conversationSearch,
   conversationSidebar,
 } from "./state.js";
-import { showError, filterConversations } from "./ui.js";
+import { showError, filterConversations } from "./ui/index.js";
 import { sendMessage } from "./chat.js";
 import {
   clearConversation,

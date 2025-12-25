@@ -1,4 +1,4 @@
-import { showError, showSuccess } from "./ui.js";
+import { showError, showSuccess } from "./ui/index.js";
 
 class SettingsAPI {
   constructor() {

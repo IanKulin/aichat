@@ -17,7 +17,7 @@ import {
   transformSkeletonToMessage,
   removeSkeletonMessage,
   addSkeletonMessage,
-} from "./ui.js";
+} from "./ui/index.js";
 import {
   createNewConversation,
   generateAndSetTitle,
