@@ -1,19 +1,18 @@
 // controllers/HealthController.ts - Health check endpoint controller
 
 import { type Request, type Response } from "express";
-import { ProviderService } from "../services/ProviderService.ts";
+import type { ProviderService } from "../types/services.ts";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { HealthController } from "../types/controllers.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
   readFileSync(join(__dirname, "../package.json"), "utf-8")
 );
 
-export abstract class HealthController {
-  abstract checkHealth(req: Request, res: Response): void;
-}
+export { HealthController };
 
 export class DefaultHealthController extends HealthController {
   private providerService: ProviderService;

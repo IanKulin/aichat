@@ -6,29 +6,10 @@ import type {
   ConversationWithMessages,
   CreateConversationData,
   SaveMessageData,
-} from "../repositories/ChatRepository.ts";
+} from "../types/index.ts";
+import { ConversationService } from "../types/services.ts";
 
-export abstract class ConversationService {
-  abstract createConversation(
-    data: CreateConversationData
-  ): Promise<Conversation>;
-  abstract getConversation(
-    id: string
-  ): Promise<ConversationWithMessages | null>;
-  abstract listConversations(
-    limit?: number,
-    offset?: number
-  ): Promise<Conversation[]>;
-  abstract updateConversationTitle(id: string, title: string): Promise<void>;
-  abstract deleteConversation(id: string): Promise<void>;
-  abstract saveMessageToConversation(data: SaveMessageData): Promise<void>;
-  abstract cleanupOldConversations(retentionDays: number): Promise<number>;
-  abstract branchConversation(
-    sourceConversationId: string,
-    upToTimestamp: number,
-    newTitle: string
-  ): Promise<ConversationWithMessages>;
-}
+export { ConversationService };
 
 export class DefaultConversationService extends ConversationService {
   private chatRepository: ChatRepository;

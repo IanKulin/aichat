@@ -4,24 +4,18 @@ import { logger } from "../lib/logger.ts";
 import {
   SUPPORTED_PROVIDERS,
   getProviderDisplayName,
-} from "../lib/provider-metadata.ts";
-import type { ISettingsRepository } from "../repositories/SettingsRepository.ts";
-import type { ProviderRepository } from "../repositories/ProviderRepository.ts";
-import type { ConfigService } from "./ConfigService.ts";
+} from "../lib/provider-constants.ts";
+import type { ISettingsRepository } from "../types/repositories.ts";
+import type { ProviderRepository } from "../types/repositories.ts";
+import type { ConfigService } from "../types/services.ts";
 import type {
   SupportedProvider,
   ApiKeyStatus,
   ApiKeyValidation,
-} from "../lib/types.ts";
+} from "../types/index.ts";
+import { SettingsService } from "../types/services.ts";
 
-export abstract class SettingsService {
-  abstract getApiKeys(): Promise<Record<SupportedProvider, ApiKeyStatus>>;
-  abstract setApiKey(
-    provider: SupportedProvider,
-    key: string
-  ): Promise<ApiKeyValidation>;
-  abstract deleteApiKey(provider: SupportedProvider): Promise<void>;
-}
+export { SettingsService };
 
 export class DefaultSettingsService extends SettingsService {
   private settingsRepository: ISettingsRepository;

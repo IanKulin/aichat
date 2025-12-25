@@ -2,18 +2,13 @@
 
 import fs from "fs";
 import path from "path";
-import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
-import type { ProviderConfig } from "../lib/types.ts";
+import { SUPPORTED_PROVIDERS } from "../lib/provider-constants.ts";
+import type { ProviderConfig } from "../types/index.ts";
+import { ModelRepository } from "../types/repositories.ts";
 import { logger } from "../lib/logger.ts";
 
-export type ModelsConfig = {
-  [key: string]: ProviderConfig;
-};
-
-export abstract class ModelRepository {
-  abstract loadModelsConfig(): Record<string, ProviderConfig>;
-  abstract validateModelsConfig(data: Record<string, unknown>): boolean;
-}
+export type { ModelsConfig } from "../types/repositories.ts";
+export { ModelRepository };
 
 export class FileModelRepository extends ModelRepository {
   private cachedConfig: Record<string, ProviderConfig> | null = null;

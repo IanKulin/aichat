@@ -1,34 +1,14 @@
-// lib/types.ts - Shared type definitions for the application
+// lib/types.ts - Backward compatibility re-exports
+// NOTE: This file is deprecated. Import from types/index.ts instead.
 
-export type { SupportedProvider } from "./provider-metadata.ts";
-
-export type ChatMessage = {
-  role: "user" | "assistant" | "system";
-  content: string;
-};
-
-export type ProviderConfig = {
-  name: string;
-  models: string[];
-  defaultModel: string;
-  testModel: string;
-};
-
-export type ApiKeyValidation = {
-  valid: boolean;
-  message: string;
-};
-
-export type ProviderInfo = {
-  id: string;
-  name: string;
-  models: string[];
-  defaultModel: string;
-};
-
-export type ApiKeyStatus = {
-  configured: boolean;
-  maskedKey?: string;
-  valid?: boolean;
-  lastValidated?: number;
-};
+// Re-export types from types/
+export type {
+  SupportedProvider,
+  ProviderConfig,
+  ProviderInfo,
+} from "../types/provider.ts";
+export type {
+  ChatMessage,
+  ApiKeyValidation,
+  ApiKeyStatus,
+} from "../types/core.ts";

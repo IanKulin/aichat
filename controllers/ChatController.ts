@@ -1,22 +1,19 @@
 // controllers/ChatController.ts - Chat endpoint controller
 
 import { type Request, type Response } from "express";
-import { ChatService } from "../services/ChatService.ts";
-import { ProviderService } from "../services/ProviderService.ts";
-import { ConfigService } from "../services/ConfigService.ts";
-import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
+import type { ChatService } from "../types/services.ts";
+import type { ProviderService } from "../types/services.ts";
+import type { ConfigService } from "../types/services.ts";
+import type {
+  SupportedProvider,
+  ChatMessage,
+  ChatRequest,
+} from "../types/index.ts";
 import { logger } from "../lib/logger.ts";
+import { ChatController } from "../types/controllers.ts";
 
-interface ChatRequest {
-  messages: ChatMessage[];
-  provider?: string;
-  model?: string;
-}
-
-export abstract class ChatController {
-  abstract processMessage(req: Request, res: Response): Promise<void>;
-  abstract generateTitle(req: Request, res: Response): Promise<void>;
-}
+export type { ChatRequest } from "../types/controllers.ts";
+export { ChatController };
 
 export class DefaultChatController extends ChatController {
   private chatService: ChatService;

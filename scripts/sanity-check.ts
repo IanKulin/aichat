@@ -2,7 +2,7 @@
 
 import "dotenv/config";
 import { getConfigService, getChatService } from "../lib/services.ts";
-import type { SupportedProvider } from "../lib/types.ts";
+import type { SupportedProvider } from "../types/index.ts";
 import { logger } from "../lib/logger.ts";
 
 async function runSanityCheck() {

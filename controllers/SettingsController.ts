@@ -1,14 +1,11 @@
 // controllers/SettingsController.ts - Settings endpoint controller
 
 import { type Request, type Response } from "express";
-import { SettingsService } from "../services/SettingsService.ts";
-import { isValidProvider } from "../lib/provider-metadata.ts";
+import type { SettingsService } from "../types/services.ts";
+import { isValidProvider } from "../lib/provider-constants.ts";
+import { SettingsController } from "../types/controllers.ts";
 
-export abstract class SettingsController {
-  abstract getApiKeys(req: Request, res: Response): Promise<void>;
-  abstract setApiKey(req: Request, res: Response): Promise<void>;
-  abstract deleteApiKey(req: Request, res: Response): Promise<void>;
-}
+export { SettingsController };
 
 export class DefaultSettingsController extends SettingsController {
   private settingsService: SettingsService;

@@ -1,34 +1,22 @@
 // controllers/ConversationController.ts - Conversation management controller
 
 import { type Request, type Response } from "express";
-import { ConversationService } from "../services/ConversationService.ts";
-import type { SaveMessageData } from "../repositories/ChatRepository.ts";
+import type { ConversationService } from "../types/services.ts";
+import type {
+  CreateConversationRequest,
+  SaveMessageRequest,
+  UpdateConversationTitleRequest,
+  BranchConversationRequest,
+} from "../types/controllers.ts";
+import { ConversationController } from "../types/controllers.ts";
 
-interface CreateConversationRequest {
-  title: string;
-}
-
-interface SaveMessageRequest extends SaveMessageData {}
-
-interface UpdateConversationTitleRequest {
-  title: string;
-}
-
-interface BranchConversationRequest {
-  upToTimestamp: number;
-  newTitle: string;
-}
-
-export abstract class ConversationController {
-  abstract createConversation(req: Request, res: Response): Promise<void>;
-  abstract getConversation(req: Request, res: Response): Promise<void>;
-  abstract listConversations(req: Request, res: Response): Promise<void>;
-  abstract updateConversationTitle(req: Request, res: Response): Promise<void>;
-  abstract deleteConversation(req: Request, res: Response): Promise<void>;
-  abstract saveMessage(req: Request, res: Response): Promise<void>;
-  abstract cleanupOldConversations?(req: Request, res: Response): Promise<void>;
-  abstract branchConversation(req: Request, res: Response): Promise<void>;
-}
+export type {
+  CreateConversationRequest,
+  SaveMessageRequest,
+  UpdateConversationTitleRequest,
+  BranchConversationRequest,
+} from "../types/controllers.ts";
+export { ConversationController };
 
 export class DefaultConversationController extends ConversationController {
   private conversationService: ConversationService;

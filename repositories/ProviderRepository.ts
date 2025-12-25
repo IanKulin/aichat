@@ -5,28 +5,22 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { deepseek } from "@ai-sdk/deepseek";
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import type { LanguageModel } from "ai";
 import {
   SUPPORTED_PROVIDERS,
   getProviderDisplayName,
   getProviderEnvVar,
   isValidProvider,
-} from "../lib/provider-metadata.ts";
-import type { SupportedProvider, ApiKeyValidation } from "../lib/types.ts";
-import type { ISettingsRepository } from "./SettingsRepository.ts";
+} from "../lib/provider-constants.ts";
+import type {
+  SupportedProvider,
+  ApiKeyValidation,
+  ProviderInstance,
+} from "../types/index.ts";
+import type { ISettingsRepository } from "../types/repositories.ts";
+import { ProviderRepository } from "../types/repositories.ts";
 
-export type ProviderInstance = LanguageModel;
-
-export abstract class ProviderRepository {
-  abstract getProvider(
-    provider: SupportedProvider,
-    model: string
-  ): ProviderInstance;
-  abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
-  abstract hasValidApiKey(provider: SupportedProvider): boolean;
-  abstract clearCache(): void;
-  abstract reloadApiKeys(): void;
-}
+export type { ProviderInstance } from "../types/repositories.ts";
+export { ProviderRepository };
 
 export class DefaultProviderRepository extends ProviderRepository {
   private providerCache = new Map<string, ProviderInstance>();

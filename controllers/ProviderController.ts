@@ -1,11 +1,10 @@
 // controllers/ProviderController.ts - Provider endpoint controller
 
 import { type Request, type Response } from "express";
-import { ProviderService } from "../services/ProviderService.ts";
+import type { ProviderService } from "../types/services.ts";
+import { ProviderController } from "../types/controllers.ts";
 
-export abstract class ProviderController {
-  abstract getProviders(req: Request, res: Response): void;
-}
+export { ProviderController };
 
 export class DefaultProviderController extends ProviderController {
   private providerService: ProviderService;

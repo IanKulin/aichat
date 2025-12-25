@@ -1,13 +1,10 @@
 // services/ConfigService.ts - Configuration management service
 
-import { ModelRepository } from "../repositories/ModelRepository.ts";
-import type { SupportedProvider, ProviderConfig } from "../lib/types.ts";
+import type { ModelRepository } from "../types/repositories.ts";
+import type { SupportedProvider, ProviderConfig } from "../types/index.ts";
+import { ConfigService } from "../types/services.ts";
 
-export abstract class ConfigService {
-  abstract getProviderConfigs(): Record<string, ProviderConfig>;
-  abstract getProviderConfig(provider: SupportedProvider): ProviderConfig;
-  abstract validateConfiguration(): void;
-}
+export { ConfigService };
 
 export class DefaultConfigService extends ConfigService {
   private modelRepository: ModelRepository;

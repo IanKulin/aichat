@@ -3,8 +3,8 @@
 import type { Database } from "better-sqlite3";
 import { getDatabase } from "../lib/database.ts";
 import { logger } from "../lib/logger.ts";
-import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
-import type { SupportedProvider } from "../lib/types.ts";
+import { SUPPORTED_PROVIDERS } from "../lib/provider-constants.ts";
+import type { SupportedProvider, ISettingsRepository } from "../types/index.ts";
 
 interface SettingRow {
   key: string;
@@ -12,12 +12,7 @@ interface SettingRow {
   updated_at: number;
 }
 
-export interface ISettingsRepository {
-  getApiKey(provider: SupportedProvider): string | null;
-  setApiKey(provider: SupportedProvider, key: string): void;
-  getAllApiKeys(): Record<SupportedProvider, string | null>;
-  deleteApiKey(provider: SupportedProvider): void;
-}
+export type { ISettingsRepository } from "../types/repositories.ts";
 
 export class SettingsRepository implements ISettingsRepository {
   private db: Database;

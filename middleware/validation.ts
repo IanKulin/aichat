@@ -1,25 +1,9 @@
 import { type Request, type Response, type NextFunction } from "express";
-import type { ChatMessage } from "../lib/types.ts";
+import type { ChatRequest } from "../types/index.ts";
 import { getProviderService } from "../lib/services.ts";
+import { ValidationError } from "../types/middleware.ts";
 
-interface ChatRequest {
-  messages: ChatMessage[];
-  provider?: string;
-  model?: string;
-}
-
-/**
- * Validation error class for better error handling
- */
-export class ValidationError extends Error {
-  status: number;
-
-  constructor(message: string, status: number = 400) {
-    super(message);
-    this.name = "ValidationError";
-    this.status = status;
-  }
-}
+export { ValidationError };
 
 /**
  * Validates chat request body structure and content

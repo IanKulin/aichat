@@ -1,28 +1,19 @@
 // services/ProviderService.ts - Provider management service
 
-import { ConfigService } from "./ConfigService.ts";
-import { ProviderRepository } from "../repositories/ProviderRepository.ts";
-import { SUPPORTED_PROVIDERS } from "../lib/provider-metadata.ts";
+import type { ConfigService } from "../types/services.ts";
+import type { ProviderRepository } from "../types/repositories.ts";
+import { SUPPORTED_PROVIDERS } from "../lib/provider-constants.ts";
 import { logger } from "../lib/logger.ts";
+import { ProviderService } from "../types/services.ts";
 
 // Import shared types
 import type {
   SupportedProvider,
   ApiKeyValidation,
   ProviderInfo,
-} from "../lib/types.ts";
+} from "../types/index.ts";
 
-export abstract class ProviderService {
-  abstract getAvailableProviders(): SupportedProvider[];
-  abstract getProviderInfo(): ProviderInfo[];
-  abstract validateProvider(provider: string): boolean;
-  abstract getProviderModel(
-    provider: SupportedProvider,
-    model?: string
-  ): unknown;
-  abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
-  abstract validateAllProviders(): Record<SupportedProvider, ApiKeyValidation>;
-}
+export { ProviderService };
 
 export class DefaultProviderService extends ProviderService {
   private configService: ConfigService;

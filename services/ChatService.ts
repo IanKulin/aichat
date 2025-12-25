@@ -3,8 +3,9 @@
 import { generateText, streamText, type LanguageModel } from "ai";
 import { marked } from "marked";
 import hljs from "highlight.js";
-import { ProviderService } from "./ProviderService.ts";
-import { ConfigService } from "./ConfigService.ts";
+import type { ProviderService, ChatResponse } from "../types/services.ts";
+import type { ConfigService } from "../types/services.ts";
+import { ChatService } from "../types/services.ts";
 
 // Configure marked with highlight.js
 marked.use({
@@ -20,28 +21,10 @@ marked.use({
 });
 
 // Import shared types
-import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
+import type { SupportedProvider, ChatMessage } from "../types/index.ts";
 
-export type ChatResponse = {
-  response: string;
-  timestamp: string;
-  provider: string;
-  providerName: string;
-  model: string;
-};
-
-export abstract class ChatService {
-  abstract processMessage(
-    messages: ChatMessage[],
-    provider?: string,
-    model?: string
-  ): Promise<ChatResponse>;
-  abstract streamMessage(
-    messages: ChatMessage[],
-    provider?: string,
-    model?: string
-  ): Promise<unknown>;
-}
+export type { ChatResponse } from "../types/services.ts";
+export { ChatService };
 
 export class DefaultChatService extends ChatService {
   private providerService: ProviderService;
