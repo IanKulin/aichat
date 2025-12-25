@@ -3,7 +3,7 @@
  */
 class ConversationAPI {
   constructor() {
-    this.baseURL = '/api';
+    this.baseURL = "/api";
   }
 
   /**
@@ -13,9 +13,9 @@ class ConversationAPI {
    */
   async createConversation(title) {
     const response = await fetch(`${this.baseURL}/conversations`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ title }),
     });
@@ -49,7 +49,10 @@ class ConversationAPI {
    * @returns {Promise<Object>} Conversations list with metadata
    */
   async listConversations(limit = 50, offset = 0) {
-    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
     const response = await fetch(`${this.baseURL}/conversations?${params}`);
 
     if (!response.ok) {
@@ -67,15 +70,17 @@ class ConversationAPI {
    */
   async updateConversationTitle(id, title) {
     const response = await fetch(`${this.baseURL}/conversations/${id}/title`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ title }),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update conversation title: ${response.status}`);
+      throw new Error(
+        `Failed to update conversation title: ${response.status}`
+      );
     }
 
     return response.json();
@@ -88,7 +93,7 @@ class ConversationAPI {
    */
   async deleteConversation(id) {
     const response = await fetch(`${this.baseURL}/conversations/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     if (!response.ok) {
@@ -107,9 +112,9 @@ class ConversationAPI {
     const response = await fetch(
       `${this.baseURL}/conversations/${sourceConversationId}/branch`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ upToTimestamp, newTitle }),
       }
@@ -131,7 +136,13 @@ class ConversationAPI {
    * @param {string} model - AI model used
    * @returns {Promise<Object>} Saved message
    */
-  async saveMessage(conversationId, role, content, provider = null, model = null) {
+  async saveMessage(
+    conversationId,
+    role,
+    content,
+    provider = null,
+    model = null
+  ) {
     const messageData = {
       conversationId,
       role,
@@ -142,9 +153,9 @@ class ConversationAPI {
     if (model) messageData.model = model;
 
     const response = await fetch(`${this.baseURL}/conversations/messages`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(messageData),
     });
@@ -166,15 +177,15 @@ class ConversationAPI {
    */
   async sendMessageWithPersistence(conversationId, messages, provider, model) {
     // Send to chat API
-    const chatResponse = await fetch('/api/chat', {
-      method: 'POST',
+    const chatResponse = await fetch("/api/chat", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         messages,
         provider,
-        model
+        model,
       }),
     });
 
@@ -189,13 +200,13 @@ class ConversationAPI {
       try {
         await this.saveMessage(
           conversationId,
-          'assistant',
+          "assistant",
           chatData.response,
           chatData.provider,
           chatData.model
         );
       } catch (error) {
-        console.warn('Failed to save assistant message:', error);
+        console.warn("Failed to save assistant message:", error);
         // Don't fail the entire request if persistence fails
       }
     }
@@ -212,14 +223,14 @@ class ConversationAPI {
    */
   async generateTitle(firstMessage, provider, model) {
     const response = await fetch(`${this.baseURL}/generate-title`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         firstMessage,
         provider,
-        model
+        model,
       }),
     });
 
@@ -245,13 +256,13 @@ class ConversationAPI {
         return await fn();
       } catch (error) {
         lastError = error;
-        
+
         if (attempt === maxRetries) {
           break;
         }
 
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+        await new Promise((resolve) => setTimeout(resolve, delay * attempt));
       }
     }
 
@@ -261,7 +272,6 @@ class ConversationAPI {
 
 // Utility functions for conversation management
 class ConversationUtils {
-
   /**
    * Check if conversation title should be auto-updated
    * @param {Object} conversation - Conversation object
@@ -270,7 +280,7 @@ class ConversationUtils {
    */
   static shouldAutoUpdateTitle(conversation, messageCount) {
     // Don't auto-update if user has set a custom title
-    if (conversation.title && !conversation.title.startsWith('New Chat')) {
+    if (conversation.title && !conversation.title.startsWith("New Chat")) {
       return false;
     }
 
@@ -292,7 +302,7 @@ class ConversationUtils {
 
     if (diffHours < 1) {
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      return diffMinutes < 1 ? 'Just now' : `${diffMinutes}m ago`;
+      return diffMinutes < 1 ? "Just now" : `${diffMinutes}m ago`;
     } else if (diffHours < 24) {
       return `${Math.floor(diffHours)}h ago`;
     } else if (diffDays < 7) {
@@ -313,12 +323,12 @@ class ConversationUtils {
       return text;
     }
 
-    return text.substring(0, maxLength).trim() + '...';
+    return text.substring(0, maxLength).trim() + "...";
   }
 }
 
 // Export for use in HTML
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.ConversationAPI = ConversationAPI;
   window.ConversationUtils = ConversationUtils;
 }

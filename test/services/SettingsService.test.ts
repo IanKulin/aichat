@@ -90,7 +90,10 @@ class MockConfigService extends ConfigService {
 class MockProviderRepository extends ProviderRepository {
   public reloadApiKeysCalled = false;
   public clearCacheCalled = false;
-  private validationResult: ApiKeyValidation = { valid: true, message: "Valid" };
+  private validationResult: ApiKeyValidation = {
+    valid: true,
+    message: "Valid",
+  };
   private shouldThrowOnGetProvider = false;
 
   getProvider(_provider: SupportedProvider, model: string): unknown {
@@ -132,7 +135,8 @@ class MockProviderRepository extends ProviderRepository {
     this.validationResult = result;
     // If validation should fail at the format check level, don't throw on getProvider
     // If validation should fail at the API call level, throw on getProvider
-    this.shouldThrowOnGetProvider = result.valid === false && result.message !== "Invalid key format";
+    this.shouldThrowOnGetProvider =
+      result.valid === false && result.message !== "Invalid key format";
   }
 
   setShouldThrowOnGetProvider(shouldThrow: boolean): void {
@@ -266,10 +270,7 @@ describe("SettingsService Tests", () => {
       // But API call fails due to network/provider error
       mockProviderRepo.setShouldThrowOnGetProvider(true);
 
-      const result = await service.setApiKey(
-        "openai",
-        "sk-test-123456789012"
-      );
+      const result = await service.setApiKey("openai", "sk-test-123456789012");
 
       // Validation should fail due to API error
       assert.strictEqual(result.valid, false);

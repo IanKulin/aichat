@@ -38,30 +38,32 @@ describe("SqliteChatRepository Branch Tests", () => {
   describe("Branch conversation functionality", () => {
     it("should branch conversation with multiple messages", async () => {
       // Create a conversation with messages
-      const conversation = await repository.createConversation({ title: "Original Conversation" });
+      const conversation = await repository.createConversation({
+        title: "Original Conversation",
+      });
 
       const _msg1 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
         content: "First message",
         provider: "openai",
-        model: "gpt-4"
+        model: "gpt-4",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const msg2 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Second message"
+        content: "Second message",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const _msg3 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Third message"
+        content: "Third message",
       });
 
       // Branch from msg2's timestamp
@@ -72,31 +74,53 @@ describe("SqliteChatRepository Branch Tests", () => {
       );
 
       // Verify branched conversation
-      assert.ok(branchedConversation.id, "Branched conversation should have an ID");
-      assert.notStrictEqual(branchedConversation.id, conversation.id, "Branch should have different ID");
-      assert.strictEqual(branchedConversation.title, "Original Conversation (Branch)");
-      assert.strictEqual(branchedConversation.messages.length, 2, "Should have 2 messages");
-      assert.strictEqual(branchedConversation.messages[0].content, "First message");
-      assert.strictEqual(branchedConversation.messages[1].content, "Second message");
+      assert.ok(
+        branchedConversation.id,
+        "Branched conversation should have an ID"
+      );
+      assert.notStrictEqual(
+        branchedConversation.id,
+        conversation.id,
+        "Branch should have different ID"
+      );
+      assert.strictEqual(
+        branchedConversation.title,
+        "Original Conversation (Branch)"
+      );
+      assert.strictEqual(
+        branchedConversation.messages.length,
+        2,
+        "Should have 2 messages"
+      );
+      assert.strictEqual(
+        branchedConversation.messages[0].content,
+        "First message"
+      );
+      assert.strictEqual(
+        branchedConversation.messages[1].content,
+        "Second message"
+      );
       assert.strictEqual(branchedConversation.messages[0].provider, "openai");
       assert.strictEqual(branchedConversation.messages[0].model, "gpt-4");
     });
 
     it("should branch from first message timestamp", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       const msg1 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "First message"
+        content: "First message",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Second message"
+        content: "Second message",
       });
 
       // Branch from first message
@@ -106,41 +130,50 @@ describe("SqliteChatRepository Branch Tests", () => {
         "Original (Branch)"
       );
 
-      assert.strictEqual(branchedConversation.messages.length, 1, "Should have only 1 message");
-      assert.strictEqual(branchedConversation.messages[0].content, "First message");
+      assert.strictEqual(
+        branchedConversation.messages.length,
+        1,
+        "Should have only 1 message"
+      );
+      assert.strictEqual(
+        branchedConversation.messages[0].content,
+        "First message"
+      );
     });
 
     it("should branch from middle message timestamp", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 1"
+        content: "Message 1",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const msg2 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Message 2"
+        content: "Message 2",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 3"
+        content: "Message 3",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Message 4"
+        content: "Message 4",
       });
 
       // Branch from second message
@@ -150,7 +183,11 @@ describe("SqliteChatRepository Branch Tests", () => {
         "Original (Branch)"
       );
 
-      assert.strictEqual(branchedConversation.messages.length, 2, "Should have first 2 messages");
+      assert.strictEqual(
+        branchedConversation.messages.length,
+        2,
+        "Should have first 2 messages"
+      );
       assert.strictEqual(branchedConversation.messages[0].content, "Message 1");
       assert.strictEqual(branchedConversation.messages[1].content, "Message 2");
     });
@@ -170,7 +207,9 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should throw error for invalid timestamp (zero)", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await assert.rejects(
         async () => {
@@ -186,7 +225,9 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should throw error for negative timestamp", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await assert.rejects(
         async () => {
@@ -202,12 +243,14 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should throw error for timestamp with no messages", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message"
+        content: "Message",
       });
 
       // Use timestamp before any messages
@@ -227,12 +270,14 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should throw error for empty title", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       const msg = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message"
+        content: "Message",
       });
 
       await assert.rejects(
@@ -249,12 +294,14 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should verify new conversation has correct title with suffix", async () => {
-      const conversation = await repository.createConversation({ title: "My Chat" });
+      const conversation = await repository.createConversation({
+        title: "My Chat",
+      });
 
       const msg = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message"
+        content: "Message",
       });
 
       const branchedConversation = await repository.branchConversation(
@@ -267,24 +314,26 @@ describe("SqliteChatRepository Branch Tests", () => {
     });
 
     it("should verify messages copied with correct role/content/provider/model", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
         content: "User message",
         provider: "anthropic",
-        model: "claude-3"
+        model: "claude-3",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const msg2 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
         content: "Assistant message",
         provider: "openai",
-        model: "gpt-4"
+        model: "gpt-4",
       });
 
       const branchedConversation = await repository.branchConversation(
@@ -294,39 +343,50 @@ describe("SqliteChatRepository Branch Tests", () => {
       );
 
       assert.strictEqual(branchedConversation.messages[0].role, "user");
-      assert.strictEqual(branchedConversation.messages[0].content, "User message");
-      assert.strictEqual(branchedConversation.messages[0].provider, "anthropic");
+      assert.strictEqual(
+        branchedConversation.messages[0].content,
+        "User message"
+      );
+      assert.strictEqual(
+        branchedConversation.messages[0].provider,
+        "anthropic"
+      );
       assert.strictEqual(branchedConversation.messages[0].model, "claude-3");
 
       assert.strictEqual(branchedConversation.messages[1].role, "assistant");
-      assert.strictEqual(branchedConversation.messages[1].content, "Assistant message");
+      assert.strictEqual(
+        branchedConversation.messages[1].content,
+        "Assistant message"
+      );
       assert.strictEqual(branchedConversation.messages[1].provider, "openai");
       assert.strictEqual(branchedConversation.messages[1].model, "gpt-4");
     });
 
     it("should verify messages have preserved relative timing", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       const msg1 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 1"
+        content: "Message 1",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const msg2 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Message 2"
+        content: "Message 2",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const msg3 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 3"
+        content: "Message 3",
       });
 
       const branchedConversation = await repository.branchConversation(
@@ -339,39 +399,49 @@ describe("SqliteChatRepository Branch Tests", () => {
       const originalDiff1 = msg2.timestamp.getTime() - msg1.timestamp.getTime();
       const originalDiff2 = msg3.timestamp.getTime() - msg2.timestamp.getTime();
 
-      const branchedDiff1 = branchedConversation.messages[1].timestamp.getTime() -
-                            branchedConversation.messages[0].timestamp.getTime();
-      const branchedDiff2 = branchedConversation.messages[2].timestamp.getTime() -
-                            branchedConversation.messages[1].timestamp.getTime();
+      const branchedDiff1 =
+        branchedConversation.messages[1].timestamp.getTime() -
+        branchedConversation.messages[0].timestamp.getTime();
+      const branchedDiff2 =
+        branchedConversation.messages[2].timestamp.getTime() -
+        branchedConversation.messages[1].timestamp.getTime();
 
       // Relative timing should be preserved (allowing small margin for rounding)
-      assert.ok(Math.abs(originalDiff1 - branchedDiff1) < 5, "First time difference should be preserved");
-      assert.ok(Math.abs(originalDiff2 - branchedDiff2) < 5, "Second time difference should be preserved");
+      assert.ok(
+        Math.abs(originalDiff1 - branchedDiff1) < 5,
+        "First time difference should be preserved"
+      );
+      assert.ok(
+        Math.abs(originalDiff2 - branchedDiff2) < 5,
+        "Second time difference should be preserved"
+      );
     });
 
     it("should verify original conversation remains unchanged after branching", async () => {
-      const conversation = await repository.createConversation({ title: "Original" });
+      const conversation = await repository.createConversation({
+        title: "Original",
+      });
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 1"
+        content: "Message 1",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const msg2 = await repository.saveMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: "Message 2"
+        content: "Message 2",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       await repository.saveMessage({
         conversationId: conversation.id,
         role: "user",
-        content: "Message 3"
+        content: "Message 3",
       });
 
       // Branch from middle
@@ -382,11 +452,24 @@ describe("SqliteChatRepository Branch Tests", () => {
       );
 
       // Verify original still has all messages
-      const originalConversation = await repository.getConversation(conversation.id);
+      const originalConversation = await repository.getConversation(
+        conversation.id
+      );
 
-      assert.ok(originalConversation, "Original conversation should still exist");
-      assert.strictEqual(originalConversation!.title, "Original", "Original title should be unchanged");
-      assert.strictEqual(originalConversation!.messages.length, 3, "Original should still have all 3 messages");
+      assert.ok(
+        originalConversation,
+        "Original conversation should still exist"
+      );
+      assert.strictEqual(
+        originalConversation!.title,
+        "Original",
+        "Original title should be unchanged"
+      );
+      assert.strictEqual(
+        originalConversation!.messages.length,
+        3,
+        "Original should still have all 3 messages"
+      );
     });
   });
 });

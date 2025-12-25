@@ -4,7 +4,12 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
-    ignores: ["**/*.min.js", "public/js/**/*.js", "public/css/**", "node_modules/**"],
+    ignores: [
+      "**/*.min.js",
+      "public/js/**/*.js",
+      "public/css/**",
+      "node_modules/**",
+    ],
   },
   {
     files: ["**/*.js"],
@@ -53,7 +58,10 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/no-explicit-any": "warn",
       "no-console": "off",
       "prefer-const": "error",
@@ -83,7 +91,10 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/no-explicit-any": "off",
       "no-console": "off",
       "prefer-const": "error",

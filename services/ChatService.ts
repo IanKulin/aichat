@@ -12,11 +12,11 @@ marked.use({
     code(token) {
       const code = token.text;
       const lang = token.lang;
-      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+      const language = lang && hljs.getLanguage(lang) ? lang : "plaintext";
       const highlighted = hljs.highlight(code, { language }).value;
       return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
-    }
-  }
+    },
+  },
 });
 
 // Import shared types
@@ -28,7 +28,7 @@ export type ChatResponse = {
   provider: string;
   providerName: string;
   model: string;
-}
+};
 
 export abstract class ChatService {
   abstract processMessage(
@@ -47,10 +47,7 @@ export class DefaultChatService extends ChatService {
   private providerService: ProviderService;
   private configService: ConfigService;
 
-  constructor(
-    providerService: ProviderService,
-    configService: ConfigService
-  ) {
+  constructor(providerService: ProviderService, configService: ConfigService) {
     super();
     this.providerService = providerService;
     this.configService = configService;
@@ -63,7 +60,8 @@ export class DefaultChatService extends ChatService {
   ): Promise<ChatResponse> {
     // Default to first available provider if none specified
     const availableProviders = this.providerService.getAvailableProviders();
-    const selectedProvider = (provider || availableProviders[0]) as SupportedProvider;
+    const selectedProvider = (provider ||
+      availableProviders[0]) as SupportedProvider;
 
     if (!this.providerService.validateProvider(selectedProvider)) {
       throw new Error(
@@ -71,7 +69,8 @@ export class DefaultChatService extends ChatService {
       );
     }
 
-    const providerConfig = this.configService.getProviderConfig(selectedProvider);
+    const providerConfig =
+      this.configService.getProviderConfig(selectedProvider);
     const actualModel = model || providerConfig.defaultModel;
 
     try {
@@ -110,9 +109,7 @@ export class DefaultChatService extends ChatService {
             `Model error for ${providerConfig.name}: ${error.message}`
           );
         }
-        throw new Error(
-          `${providerConfig.name} API error: ${error.message}`
-        );
+        throw new Error(`${providerConfig.name} API error: ${error.message}`);
       }
       throw error;
     }
@@ -125,7 +122,8 @@ export class DefaultChatService extends ChatService {
   ) {
     // Default to first available provider if none specified
     const availableProviders = this.providerService.getAvailableProviders();
-    const selectedProvider = (provider || availableProviders[0]) as SupportedProvider;
+    const selectedProvider = (provider ||
+      availableProviders[0]) as SupportedProvider;
 
     if (!this.providerService.validateProvider(selectedProvider)) {
       throw new Error(
@@ -133,7 +131,8 @@ export class DefaultChatService extends ChatService {
       );
     }
 
-    const providerConfig = this.configService.getProviderConfig(selectedProvider);
+    const providerConfig =
+      this.configService.getProviderConfig(selectedProvider);
     const actualModel = model || providerConfig.defaultModel;
 
     try {

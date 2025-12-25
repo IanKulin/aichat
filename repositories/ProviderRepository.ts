@@ -17,7 +17,10 @@ import type { ISettingsRepository } from "./SettingsRepository.ts";
 export type ProviderInstance = unknown;
 
 export abstract class ProviderRepository {
-  abstract getProvider(provider: SupportedProvider, model: string): ProviderInstance;
+  abstract getProvider(
+    provider: SupportedProvider,
+    model: string
+  ): ProviderInstance;
   abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
   abstract hasValidApiKey(provider: SupportedProvider): boolean;
   abstract clearCache(): void;
@@ -37,14 +40,14 @@ export class DefaultProviderRepository extends ProviderRepository {
 
   getProvider(provider: SupportedProvider, model: string): ProviderInstance {
     const cacheKey = `${provider}:${model}`;
-    
+
     if (this.providerCache.has(cacheKey)) {
       return this.providerCache.get(cacheKey);
     }
 
     const providerInstance = this.createProviderInstance(provider, model);
     this.providerCache.set(cacheKey, providerInstance);
-    
+
     return providerInstance;
   }
 
@@ -114,10 +117,15 @@ export class DefaultProviderRepository extends ProviderRepository {
     });
   }
 
-  private createProviderInstance(provider: SupportedProvider, model: string): ProviderInstance {
+  private createProviderInstance(
+    provider: SupportedProvider,
+    model: string
+  ): ProviderInstance {
     // Ensure API key is available before creating instance
     if (!this.hasValidApiKey(provider)) {
-      throw new Error(`Provider ${provider} is not configured (API key missing)`);
+      throw new Error(
+        `Provider ${provider} is not configured (API key missing)`
+      );
     }
 
     switch (provider) {

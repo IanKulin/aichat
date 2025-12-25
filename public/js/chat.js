@@ -9,10 +9,20 @@ import {
   messageInput,
   sendButton,
   addToConversationHistory,
-  popFromConversationHistory
-} from './state.js';
-import { addMessage, addError, transformSkeletonToMessage, removeSkeletonMessage, addSkeletonMessage } from './ui.js';
-import { createNewConversation, generateAndSetTitle, refreshConversationList } from './conversations.js';
+  popFromConversationHistory,
+} from "./state.js";
+import {
+  addMessage,
+  addError,
+  transformSkeletonToMessage,
+  removeSkeletonMessage,
+  addSkeletonMessage,
+} from "./ui.js";
+import {
+  createNewConversation,
+  generateAndSetTitle,
+  refreshConversationList,
+} from "./conversations.js";
 
 export function setLoading(isLoading) {
   sendButton.disabled = isLoading;
@@ -50,7 +60,9 @@ export async function sendMessage() {
     const newConv = await createNewConversation();
     if (!newConv) {
       // Failed to create conversation, continue without persistence
-      console.warn('Continuing without persistence due to conversation creation failure');
+      console.warn(
+        "Continuing without persistence due to conversation creation failure"
+      );
     }
   }
 
@@ -66,7 +78,7 @@ export async function sendMessage() {
     try {
       await conversationAPI.saveMessage(updatedCurrentConv.id, "user", message);
     } catch (error) {
-      console.warn('Failed to save user message:', error);
+      console.warn("Failed to save user message:", error);
     }
   }
 
@@ -79,7 +91,6 @@ export async function sendMessage() {
 
   let data;
   try {
-
     if (updatedCurrentConv && autoSaveEnabled) {
       // Use the persistence-aware API
       data = await conversationAPI.sendMessageWithPersistence(
@@ -98,7 +109,7 @@ export async function sendMessage() {
         body: JSON.stringify({
           messages: getConversationHistory(),
           provider: selectedProvider,
-          model: selectedModel
+          model: selectedModel,
         }),
       });
 
@@ -125,7 +136,7 @@ export async function sendMessage() {
       // Transform skeleton to actual message with provider metadata
       transformSkeletonToMessage(data.response, {
         providerName: data.providerName,
-        model: data.model
+        model: data.model,
       });
 
       // Generate title after first response

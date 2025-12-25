@@ -40,13 +40,21 @@ describe("SettingsRepository Tests", () => {
   describe("getApiKey", () => {
     it("should return null when key doesn't exist", () => {
       const result = repository.getApiKey("openai");
-      assert.strictEqual(result, null, "Should return null for non-existent key");
+      assert.strictEqual(
+        result,
+        null,
+        "Should return null for non-existent key"
+      );
     });
 
     it("should return the API key when it exists", () => {
       repository.setApiKey("openai", "sk-test-123");
       const result = repository.getApiKey("openai");
-      assert.strictEqual(result, "sk-test-123", "Should return the stored API key");
+      assert.strictEqual(
+        result,
+        "sk-test-123",
+        "Should return the stored API key"
+      );
     });
 
     it("should return null for different providers when only one is set", () => {
@@ -90,18 +98,22 @@ describe("SettingsRepository Tests", () => {
       const db = getDatabase();
 
       repository.setApiKey("openai", "sk-test-123");
-      const firstResult = db.prepare("SELECT updated_at FROM settings WHERE key = ?")
+      const firstResult = db
+        .prepare("SELECT updated_at FROM settings WHERE key = ?")
         .get("api_key_openai") as { updated_at: number };
 
       // Wait a bit to ensure different timestamp
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       repository.setApiKey("openai", "sk-test-456");
-      const secondResult = db.prepare("SELECT updated_at FROM settings WHERE key = ?")
+      const secondResult = db
+        .prepare("SELECT updated_at FROM settings WHERE key = ?")
         .get("api_key_openai") as { updated_at: number };
 
-      assert.ok(secondResult.updated_at > firstResult.updated_at,
-        "Timestamp should be updated when key is modified");
+      assert.ok(
+        secondResult.updated_at > firstResult.updated_at,
+        "Timestamp should be updated when key is modified"
+      );
     });
   });
 
@@ -109,13 +121,17 @@ describe("SettingsRepository Tests", () => {
     it("should return all provider keys with null for unconfigured providers", () => {
       const result = repository.getAllApiKeys();
 
-      assert.deepStrictEqual(result, {
-        openai: null,
-        anthropic: null,
-        google: null,
-        deepseek: null,
-        openrouter: null,
-      }, "Should return all providers with null values");
+      assert.deepStrictEqual(
+        result,
+        {
+          openai: null,
+          anthropic: null,
+          google: null,
+          deepseek: null,
+          openrouter: null,
+        },
+        "Should return all providers with null values"
+      );
     });
 
     it("should return all provider keys with mixed configured and unconfigured", () => {
@@ -124,13 +140,17 @@ describe("SettingsRepository Tests", () => {
 
       const result = repository.getAllApiKeys();
 
-      assert.deepStrictEqual(result, {
-        openai: "sk-openai-123",
-        anthropic: "sk-ant-456",
-        google: null,
-        deepseek: null,
-        openrouter: null,
-      }, "Should return all providers with configured and null values");
+      assert.deepStrictEqual(
+        result,
+        {
+          openai: "sk-openai-123",
+          anthropic: "sk-ant-456",
+          google: null,
+          deepseek: null,
+          openrouter: null,
+        },
+        "Should return all providers with configured and null values"
+      );
     });
 
     it("should return all provider keys when all are configured", () => {
@@ -142,13 +162,17 @@ describe("SettingsRepository Tests", () => {
 
       const result = repository.getAllApiKeys();
 
-      assert.deepStrictEqual(result, {
-        openai: "sk-openai-123",
-        anthropic: "sk-ant-456",
-        google: "google-789",
-        deepseek: "deepseek-abc",
-        openrouter: "openrouter-xyz",
-      }, "Should return all configured provider keys");
+      assert.deepStrictEqual(
+        result,
+        {
+          openai: "sk-openai-123",
+          anthropic: "sk-ant-456",
+          google: "google-789",
+          deepseek: "deepseek-abc",
+          openrouter: "openrouter-xyz",
+        },
+        "Should return all configured provider keys"
+      );
     });
   });
 
@@ -180,7 +204,11 @@ describe("SettingsRepository Tests", () => {
       repository.deleteApiKey("openai");
 
       const result = repository.getApiKey("openai");
-      assert.strictEqual(result, null, "Should remain null after deleting non-existent key");
+      assert.strictEqual(
+        result,
+        null,
+        "Should remain null after deleting non-existent key"
+      );
     });
 
     it("should be able to re-add a deleted key", () => {
@@ -189,7 +217,11 @@ describe("SettingsRepository Tests", () => {
       repository.setApiKey("openai", "sk-test-new");
 
       const result = repository.getApiKey("openai");
-      assert.strictEqual(result, "sk-test-new", "Should be able to re-add a deleted key");
+      assert.strictEqual(
+        result,
+        "sk-test-new",
+        "Should be able to re-add a deleted key"
+      );
     });
   });
 
@@ -201,7 +233,11 @@ describe("SettingsRepository Tests", () => {
       const newRepository = new SettingsRepository();
       const result = newRepository.getApiKey("openai");
 
-      assert.strictEqual(result, "sk-test-123", "API key should persist across instances");
+      assert.strictEqual(
+        result,
+        "sk-test-123",
+        "API key should persist across instances"
+      );
     });
 
     it("should handle multiple concurrent operations", async () => {

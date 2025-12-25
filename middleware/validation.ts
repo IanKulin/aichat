@@ -13,7 +13,7 @@ interface ChatRequest {
  */
 export class ValidationError extends Error {
   status: number;
-  
+
   constructor(message: string, status: number = 400) {
     super(message);
     this.name = "ValidationError";
@@ -49,7 +49,9 @@ export function validateChatRequest(
         throw new ValidationError("Each message must have role and content");
       }
       if (!["user", "assistant", "system"].includes(message.role)) {
-        throw new ValidationError("Message role must be user, assistant, or system");
+        throw new ValidationError(
+          "Message role must be user, assistant, or system"
+        );
       }
     }
 
@@ -57,7 +59,7 @@ export function validateChatRequest(
     if (provider) {
       const providerService = getProviderService();
       const availableProviders = providerService.getAvailableProviders();
-      
+
       if (!providerService.validateProvider(provider)) {
         throw new ValidationError(
           `Provider '${provider}' is not available. Available providers: ${availableProviders.join(", ")}`

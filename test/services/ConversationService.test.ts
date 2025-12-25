@@ -16,7 +16,7 @@ class MockChatRepository implements ChatRepository {
       id: `conv-${this.nextId++}`,
       title: data.title,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
     this.conversations.set(conversation.id, conversation);
     return conversation;
@@ -32,7 +32,7 @@ class MockChatRepository implements ChatRepository {
 
     return {
       ...conversation,
-      messages: conversationMessages
+      messages: conversationMessages,
     };
   }
 
@@ -74,7 +74,7 @@ class MockChatRepository implements ChatRepository {
       content: data.content,
       timestamp: new Date(),
       provider: data.provider,
-      model: data.model
+      model: data.model,
     };
     this.messages.set(message.id, message);
 
@@ -117,7 +117,11 @@ class MockChatRepository implements ChatRepository {
     return deletedCount;
   }
 
-  async branchConversation(sourceConversationId: string, upToTimestamp: number, newTitle: string) {
+  async branchConversation(
+    sourceConversationId: string,
+    upToTimestamp: number,
+    newTitle: string
+  ) {
     const sourceConv = await this.getConversation(sourceConversationId);
     if (!sourceConv) {
       throw new Error(`Conversation with id ${sourceConversationId} not found`);
@@ -139,7 +143,7 @@ class MockChatRepository implements ChatRepository {
         role: msg.role,
         content: msg.content,
         provider: msg.provider,
-        model: msg.model
+        model: msg.model,
       });
     }
 
@@ -160,22 +164,32 @@ describe("ConversationService Tests", () => {
     it("should create conversation through service", async () => {
       const conversationData = { title: "Test Conversation" };
 
-      const conversation = await conversationService.createConversation(conversationData);
+      const conversation =
+        await conversationService.createConversation(conversationData);
 
       assert.ok(conversation.id, "Should have conversation ID");
       assert.strictEqual(conversation.title, "Test Conversation");
-      assert.ok(conversation.createdAt instanceof Date, "Should have created date");
+      assert.ok(
+        conversation.createdAt instanceof Date,
+        "Should have created date"
+      );
     });
 
     it("should retrieve conversation through service", async () => {
-      const created = await conversationService.createConversation({ title: "Test" });
+      const created = await conversationService.createConversation({
+        title: "Test",
+      });
 
       const retrieved = await conversationService.getConversation(created.id);
 
       assert.ok(retrieved, "Should retrieve conversation");
       assert.strictEqual(retrieved!.id, created.id);
       assert.strictEqual(retrieved!.title, "Test");
-      assert.deepStrictEqual(retrieved!.messages, [], "Should have empty messages array");
+      assert.deepStrictEqual(
+        retrieved!.messages,
+        [],
+        "Should have empty messages array"
+      );
     });
 
     it("should list conversations through service", async () => {
@@ -184,42 +198,65 @@ describe("ConversationService Tests", () => {
 
       const conversations = await conversationService.listConversations();
 
-      assert.strictEqual(conversations.length, 2, "Should list all conversations");
+      assert.strictEqual(
+        conversations.length,
+        2,
+        "Should list all conversations"
+      );
     });
 
     it("should update conversation title through service", async () => {
-      const conversation = await conversationService.createConversation({ title: "Original" });
+      const conversation = await conversationService.createConversation({
+        title: "Original",
+      });
 
-      await conversationService.updateConversationTitle(conversation.id, "Updated");
+      await conversationService.updateConversationTitle(
+        conversation.id,
+        "Updated"
+      );
 
-      const updated = await conversationService.getConversation(conversation.id);
+      const updated = await conversationService.getConversation(
+        conversation.id
+      );
       assert.strictEqual(updated!.title, "Updated", "Title should be updated");
     });
 
     it("should delete conversation through service", async () => {
-      const conversation = await conversationService.createConversation({ title: "To Delete" });
+      const conversation = await conversationService.createConversation({
+        title: "To Delete",
+      });
 
       await conversationService.deleteConversation(conversation.id);
 
-      const deleted = await conversationService.getConversation(conversation.id);
+      const deleted = await conversationService.getConversation(
+        conversation.id
+      );
       assert.strictEqual(deleted, null, "Conversation should be deleted");
     });
 
     it("should save message to conversation through service", async () => {
-      const conversation = await conversationService.createConversation({ title: "Test" });
+      const conversation = await conversationService.createConversation({
+        title: "Test",
+      });
 
       const messageData = {
         conversationId: conversation.id,
         role: "user" as const,
         content: "Hello",
         provider: "openai",
-        model: "gpt-4"
+        model: "gpt-4",
       };
 
       await conversationService.saveMessageToConversation(messageData);
 
-      const updated = await conversationService.getConversation(conversation.id);
-      assert.strictEqual(updated!.messages.length, 1, "Should have saved message");
+      const updated = await conversationService.getConversation(
+        conversation.id
+      );
+      assert.strictEqual(
+        updated!.messages.length,
+        1,
+        "Should have saved message"
+      );
       assert.strictEqual(updated!.messages[0].content, "Hello");
     });
 
@@ -234,7 +271,11 @@ describe("ConversationService Tests", () => {
 
       assert.strictEqual(page1.length, 2, "First page should have 2 items");
       assert.strictEqual(page2.length, 2, "Second page should have 2 items");
-      assert.notStrictEqual(page1[0].id, page2[0].id, "Pages should be different");
+      assert.notStrictEqual(
+        page1[0].id,
+        page2[0].id,
+        "Pages should be different"
+      );
     });
 
     it("should cleanup old conversations", async () => {
@@ -249,7 +290,9 @@ describe("ConversationService Tests", () => {
     });
 
     it("should branch conversation", async () => {
-      const conversation = await conversationService.createConversation({ title: "Original" });
+      const conversation = await conversationService.createConversation({
+        title: "Original",
+      });
 
       // Add messages
       const msg1 = await mockRepository.saveMessage({
@@ -257,17 +300,17 @@ describe("ConversationService Tests", () => {
         role: "user",
         content: "Message 1",
         provider: "openai",
-        model: "gpt-4"
+        model: "gpt-4",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
 
       const _msg2 = await mockRepository.saveMessage({
         conversationId: conversation.id,
         role: "user",
         content: "Message 2",
         provider: "openai",
-        model: "gpt-4"
+        model: "gpt-4",
       });
 
       // Branch at msg1 timestamp
@@ -279,7 +322,11 @@ describe("ConversationService Tests", () => {
 
       assert.ok(branched, "Should create branched conversation");
       assert.strictEqual(branched!.title, "Branched Conversation");
-      assert.strictEqual(branched!.messages.length, 1, "Should have only first message");
+      assert.strictEqual(
+        branched!.messages.length,
+        1,
+        "Should have only first message"
+      );
       assert.strictEqual(branched!.messages[0].content, "Message 1");
     });
   });
@@ -288,28 +335,36 @@ describe("ConversationService Tests", () => {
     it("should propagate repository errors for conversation operations", async () => {
       // Test update non-existent conversation
       await assert.rejects(
-        async () => await conversationService.updateConversationTitle("non-existent", "New Title"),
+        async () =>
+          await conversationService.updateConversationTitle(
+            "non-existent",
+            "New Title"
+          ),
         /Conversation with id non-existent not found/,
         "Should propagate repository errors"
       );
 
       // Test delete non-existent conversation
       await assert.rejects(
-        async () => await conversationService.deleteConversation("non-existent"),
+        async () =>
+          await conversationService.deleteConversation("non-existent"),
         /Conversation with id non-existent not found/,
         "Should propagate repository errors"
       );
     });
 
     it("should handle repository errors gracefully", async () => {
-      const conversation = await conversationService.createConversation({ title: "Test" });
+      const conversation = await conversationService.createConversation({
+        title: "Test",
+      });
 
       // First deletion should succeed
       await conversationService.deleteConversation(conversation.id);
 
       // Second deletion should fail and propagate error
       await assert.rejects(
-        async () => await conversationService.deleteConversation(conversation.id),
+        async () =>
+          await conversationService.deleteConversation(conversation.id),
         /Conversation with id .+ not found/,
         "Should propagate not found errors"
       );

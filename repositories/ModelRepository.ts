@@ -7,7 +7,7 @@ import type { ProviderConfig } from "../lib/types.ts";
 
 export type ModelsConfig = {
   [key: string]: ProviderConfig;
-}
+};
 
 export abstract class ModelRepository {
   abstract loadModelsConfig(): Record<string, ProviderConfig>;
@@ -38,7 +38,10 @@ export class FileModelRepository extends ModelRepository {
       return configs;
     } catch (error) {
       if (error instanceof Error) {
-        console.error("FATAL: Invalid models.json configuration:", error.message);
+        console.error(
+          "FATAL: Invalid models.json configuration:",
+          error.message
+        );
       } else {
         console.error(
           "FATAL: An unknown error occurred while loading configuration."
@@ -55,7 +58,11 @@ export class FileModelRepository extends ModelRepository {
       }
 
       const config = data[provider] as ProviderConfig;
-      if (!config.name || !Array.isArray(config.models) || !config.defaultModel) {
+      if (
+        !config.name ||
+        !Array.isArray(config.models) ||
+        !config.defaultModel
+      ) {
         throw new Error(`Invalid configuration for provider: ${provider}`);
       }
 

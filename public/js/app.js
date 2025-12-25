@@ -18,11 +18,15 @@ import {
   sidebarToggleMobile,
   autoSaveToggle,
   conversationSearch,
-  conversationSidebar
-} from './state.js';
-import { showError, filterConversations } from './ui.js';
-import { sendMessage } from './chat.js';
-import { clearConversation, refreshConversationList, updateConversationListUI } from './conversations.js';
+  conversationSidebar,
+} from "./state.js";
+import { showError, filterConversations } from "./ui.js";
+import { sendMessage } from "./chat.js";
+import {
+  clearConversation,
+  refreshConversationList,
+  updateConversationListUI,
+} from "./conversations.js";
 
 // Provider/model selection functions
 async function loadProviders() {
@@ -40,11 +44,12 @@ async function loadProviders() {
     // Populate provider dropdown
     providerSelect.innerHTML = "";
     if (availableProviders.length === 0) {
-      providerSelect.innerHTML = '<option value="">No providers available</option>';
+      providerSelect.innerHTML =
+        '<option value="">No providers available</option>';
       return;
     }
 
-    availableProviders.forEach(provider => {
+    availableProviders.forEach((provider) => {
       const option = document.createElement("option");
       option.value = provider.id;
       option.textContent = provider.name;
@@ -57,21 +62,21 @@ async function loadProviders() {
       providerSelect.value = getSelectedProvider();
       loadModelsForProvider(getSelectedProvider());
     }
-
   } catch (error) {
     console.error("Error loading providers:", error);
-    providerSelect.innerHTML = '<option value="">Error loading providers</option>';
+    providerSelect.innerHTML =
+      '<option value="">Error loading providers</option>';
   }
 }
 
 function loadModelsForProvider(providerId) {
   const availableProviders = getAvailableProviders();
-  const provider = availableProviders.find(p => p.id === providerId);
+  const provider = availableProviders.find((p) => p.id === providerId);
   if (!provider) return;
 
   // Clear and populate model dropdown
   modelSelect.innerHTML = "";
-  provider.models.forEach(model => {
+  provider.models.forEach((model) => {
     const option = document.createElement("option");
     option.value = model;
     option.textContent = model;
@@ -100,7 +105,7 @@ function loadUserSelection() {
   if (savedProvider && savedModel) {
     const availableProviders = getAvailableProviders();
     // Check if saved provider is still available
-    const provider = availableProviders.find(p => p.id === savedProvider);
+    const provider = availableProviders.find((p) => p.id === savedProvider);
     if (provider && provider.models.includes(savedModel)) {
       setSelectedProvider(savedProvider);
       providerSelect.value = savedProvider;
@@ -113,31 +118,35 @@ function loadUserSelection() {
 
 function loadSavedSettings() {
   // Load auto-save setting
-  const savedAutoSave = localStorage.getItem('autoSaveEnabled');
+  const savedAutoSave = localStorage.getItem("autoSaveEnabled");
   if (savedAutoSave !== null) {
-    const autoSaveValue = savedAutoSave === 'true';
+    const autoSaveValue = savedAutoSave === "true";
     setAutoSaveEnabled(autoSaveValue);
     autoSaveToggle.checked = autoSaveValue;
   }
 
   // Load sidebar collapse state
-  const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  const sidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
   if (sidebarCollapsed) {
-    conversationSidebar.classList.add('collapsed');
+    conversationSidebar.classList.add("collapsed");
   }
 
   // Set initial tooltip text
-  sidebarCollapseBtn.title = sidebarCollapsed ? 'Open chat history' : 'Close chat history';
+  sidebarCollapseBtn.title = sidebarCollapsed
+    ? "Open chat history"
+    : "Close chat history";
 }
 
 function toggleSidebarCollapse() {
-  conversationSidebar.classList.toggle('collapsed');
-  const isCollapsed = conversationSidebar.classList.contains('collapsed');
+  conversationSidebar.classList.toggle("collapsed");
+  const isCollapsed = conversationSidebar.classList.contains("collapsed");
 
   // Update tooltip text based on state
-  sidebarCollapseBtn.title = isCollapsed ? 'Open chat history' : 'Close chat history';
+  sidebarCollapseBtn.title = isCollapsed
+    ? "Open chat history"
+    : "Close chat history";
 
-  localStorage.setItem('sidebarCollapsed', isCollapsed);
+  localStorage.setItem("sidebarCollapsed", isCollapsed);
 }
 
 // Initialize app
@@ -162,8 +171,8 @@ async function initializeApp() {
     await refreshConversationList();
     messageInput.focus();
   } catch (error) {
-    console.error('Failed to initialize app:', error);
-    showError('Failed to initialize application');
+    console.error("Failed to initialize app:", error);
+    showError("Failed to initialize application");
   }
 }
 
@@ -183,19 +192,19 @@ function setupEventListeners() {
   });
 
   // Send button click handler
-  document.getElementById("sendButton").addEventListener("click", function(e) {
+  document.getElementById("sendButton").addEventListener("click", function (e) {
     e.preventDefault();
     sendMessage();
   });
 
   // Handle form submission
-  document.querySelector('form').addEventListener('submit', function(e) {
+  document.querySelector("form").addEventListener("submit", function (e) {
     e.preventDefault();
     sendMessage();
   });
 
   // Provider selection change handler
-  providerSelect.addEventListener("change", function() {
+  providerSelect.addEventListener("change", function () {
     setSelectedProvider(this.value);
     if (this.value) {
       loadModelsForProvider(this.value);
@@ -204,45 +213,52 @@ function setupEventListeners() {
   });
 
   // Model selection change handler
-  modelSelect.addEventListener("change", function() {
+  modelSelect.addEventListener("change", function () {
     setSelectedModel(this.value);
     saveUserSelection();
   });
 
   // New chat button
-  newChatBtn.addEventListener('click', async () => {
+  newChatBtn.addEventListener("click", async () => {
     await clearConversation();
   });
 
   // Sidebar collapse button
-  sidebarCollapseBtn.addEventListener('click', toggleSidebarCollapse);
+  sidebarCollapseBtn.addEventListener("click", toggleSidebarCollapse);
 
   // Mobile sidebar toggle
-  sidebarToggleMobile.addEventListener('click', () => {
-    conversationSidebar.classList.toggle('open');
+  sidebarToggleMobile.addEventListener("click", () => {
+    conversationSidebar.classList.toggle("open");
     // Add overlay for mobile
-    let overlay = document.querySelector('.sidebar-overlay');
+    let overlay = document.querySelector(".sidebar-overlay");
     if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'sidebar-overlay';
+      overlay = document.createElement("div");
+      overlay.className = "sidebar-overlay";
       document.body.appendChild(overlay);
-      overlay.addEventListener('click', () => {
-        conversationSidebar.classList.remove('open');
-        overlay.classList.remove('show');
+      overlay.addEventListener("click", () => {
+        conversationSidebar.classList.remove("open");
+        overlay.classList.remove("show");
       });
     }
-    overlay.classList.toggle('show', conversationSidebar.classList.contains('open'));
+    overlay.classList.toggle(
+      "show",
+      conversationSidebar.classList.contains("open")
+    );
   });
 
   // Auto-save toggle
-  autoSaveToggle.addEventListener('change', (e) => {
+  autoSaveToggle.addEventListener("change", (e) => {
     setAutoSaveEnabled(e.target.checked);
-    localStorage.setItem('autoSaveEnabled', e.target.checked);
+    localStorage.setItem("autoSaveEnabled", e.target.checked);
   });
 
   // Conversation search
-  conversationSearch.addEventListener('input', (e) => {
-    filterConversations(e.target.value, getConversationList(), updateConversationListUI);
+  conversationSearch.addEventListener("input", (e) => {
+    filterConversations(
+      e.target.value,
+      getConversationList(),
+      updateConversationListUI
+    );
   });
 }
 

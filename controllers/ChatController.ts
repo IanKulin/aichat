@@ -35,14 +35,14 @@ export class DefaultChatController extends ChatController {
 
   private cleanTitleText(text: string): string {
     return text
-      .replace(/<[^>]*>/g, '') // Remove all HTML tags
+      .replace(/<[^>]*>/g, "") // Remove all HTML tags
       .replace(/&quot;/g, '"')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
       .replace(/&#39;/g, "'")
-      .replace(/&[^;]+;/g, '') // Remove any remaining HTML entities
-      .replace(/[{}"]/g, '') // Remove JSON characters
+      .replace(/&[^;]+;/g, "") // Remove any remaining HTML entities
+      .replace(/[{}"]/g, "") // Remove JSON characters
       .trim();
   }
 
@@ -94,9 +94,7 @@ Respond only with plain text in this JSON format: {"title": "your title here"}.
 Chat opening:
 ${firstMessage}`;
 
-    const messages: ChatMessage[] = [
-      { role: "user", content: titlePrompt }
-    ];
+    const messages: ChatMessage[] = [{ role: "user", content: titlePrompt }];
 
     try {
       const aiResponse = await this.chatService.processMessage(
@@ -109,11 +107,13 @@ ${firstMessage}`;
       let cleanResponse = this.cleanTitleText(aiResponse.response);
 
       // Remove any markdown code block formatting
-      cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      cleanResponse = cleanResponse
+        .replace(/^```json\s*/, "")
+        .replace(/\s*```$/, "");
 
       try {
         const parsed = JSON.parse(cleanResponse);
-        if (parsed.title && typeof parsed.title === 'string') {
+        if (parsed.title && typeof parsed.title === "string") {
           const cleanTitle = this.cleanTitleText(parsed.title);
           res.json({ title: cleanTitle });
         } else {
@@ -122,11 +122,11 @@ ${firstMessage}`;
       } catch {
         // Fallback: extract title from plain text response
         let fallbackTitle = cleanResponse
-          .replace(/title\s*[:=]\s*/i, '') // Remove "title:" prefix
-          .split('\n')[0]
+          .replace(/title\s*[:=]\s*/i, "") // Remove "title:" prefix
+          .split("\n")[0]
           .substring(0, 50)
           .trim();
-        
+
         fallbackTitle = this.cleanTitleText(fallbackTitle);
         res.json({ title: fallbackTitle || "Chat" });
       }

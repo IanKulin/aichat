@@ -32,10 +32,7 @@ describe("Provider Metadata", () => {
 
     it("should have name and envVar for each provider", () => {
       for (const [providerId, metadata] of Object.entries(PROVIDER_METADATA)) {
-        assert.ok(
-          metadata.name,
-          `Provider ${providerId} should have a name`
-        );
+        assert.ok(metadata.name, `Provider ${providerId} should have a name`);
         assert.ok(
           metadata.envVar,
           `Provider ${providerId} should have an envVar`
@@ -54,10 +51,7 @@ describe("Provider Metadata", () => {
     });
 
     it("should have correct environment variable names", () => {
-      assert.strictEqual(
-        PROVIDER_METADATA.openai.envVar,
-        "OPENAI_API_KEY"
-      );
+      assert.strictEqual(PROVIDER_METADATA.openai.envVar, "OPENAI_API_KEY");
       assert.strictEqual(
         PROVIDER_METADATA.anthropic.envVar,
         "ANTHROPIC_API_KEY"
@@ -66,10 +60,7 @@ describe("Provider Metadata", () => {
         PROVIDER_METADATA.google.envVar,
         "GOOGLE_GENERATIVE_AI_API_KEY"
       );
-      assert.strictEqual(
-        PROVIDER_METADATA.deepseek.envVar,
-        "DEEPSEEK_API_KEY"
-      );
+      assert.strictEqual(PROVIDER_METADATA.deepseek.envVar, "DEEPSEEK_API_KEY");
       assert.strictEqual(
         PROVIDER_METADATA.openrouter.envVar,
         "OPENROUTER_API_KEY"
@@ -138,26 +129,14 @@ describe("Provider Metadata", () => {
 
   describe("getProviderEnvVar()", () => {
     it("should return correct environment variable name for each provider", () => {
-      assert.strictEqual(
-        getProviderEnvVar("openai"),
-        "OPENAI_API_KEY"
-      );
-      assert.strictEqual(
-        getProviderEnvVar("anthropic"),
-        "ANTHROPIC_API_KEY"
-      );
+      assert.strictEqual(getProviderEnvVar("openai"), "OPENAI_API_KEY");
+      assert.strictEqual(getProviderEnvVar("anthropic"), "ANTHROPIC_API_KEY");
       assert.strictEqual(
         getProviderEnvVar("google"),
         "GOOGLE_GENERATIVE_AI_API_KEY"
       );
-      assert.strictEqual(
-        getProviderEnvVar("deepseek"),
-        "DEEPSEEK_API_KEY"
-      );
-      assert.strictEqual(
-        getProviderEnvVar("openrouter"),
-        "OPENROUTER_API_KEY"
-      );
+      assert.strictEqual(getProviderEnvVar("deepseek"), "DEEPSEEK_API_KEY");
+      assert.strictEqual(getProviderEnvVar("openrouter"), "OPENROUTER_API_KEY");
     });
 
     it("should return a non-empty string", () => {

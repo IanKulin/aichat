@@ -85,11 +85,14 @@ export class DefaultSettingsService extends SettingsService {
 
     // If format is invalid, rollback and return error
     if (!formatValidation.valid) {
-      logger.warn(`API key format validation failed for ${provider}, rolling back`, {
-        provider,
-        reason: formatValidation.message,
-        action: originalKey ? 'restored_previous_key' : 'deleted_invalid_key',
-      });
+      logger.warn(
+        `API key format validation failed for ${provider}, rolling back`,
+        {
+          provider,
+          reason: formatValidation.message,
+          action: originalKey ? "restored_previous_key" : "deleted_invalid_key",
+        }
+      );
       if (originalKey) {
         this.settingsRepository.setApiKey(provider, originalKey);
       } else {

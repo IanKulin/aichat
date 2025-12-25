@@ -38,13 +38,23 @@ export type SaveMessageData = {
 };
 
 export abstract class ChatRepository {
-  abstract createConversation(data: CreateConversationData): Promise<Conversation>;
-  abstract getConversation(id: string): Promise<ConversationWithMessages | null>;
-  abstract listConversations(limit?: number, offset?: number): Promise<ConversationWithMessageCount[]>;
+  abstract createConversation(
+    data: CreateConversationData
+  ): Promise<Conversation>;
+  abstract getConversation(
+    id: string
+  ): Promise<ConversationWithMessages | null>;
+  abstract listConversations(
+    limit?: number,
+    offset?: number
+  ): Promise<ConversationWithMessageCount[]>;
   abstract updateConversationTitle(id: string, title: string): Promise<void>;
   abstract deleteConversation(id: string): Promise<void>;
   abstract saveMessage(data: SaveMessageData): Promise<PersistedMessage>;
-  abstract getMessages(conversationId: string, limit?: number): Promise<PersistedMessage[]>;
+  abstract getMessages(
+    conversationId: string,
+    limit?: number
+  ): Promise<PersistedMessage[]>;
   abstract deleteMessage(messageId: number): Promise<void>;
   abstract getConversationCount(): Promise<number>;
   abstract deleteOldConversations(olderThanTimestamp: number): Promise<number>;

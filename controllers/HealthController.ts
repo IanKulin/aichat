@@ -7,7 +7,9 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf-8"));
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, "../package.json"), "utf-8")
+);
 
 export abstract class HealthController {
   abstract checkHealth(req: Request, res: Response): void;
@@ -23,7 +25,8 @@ export class DefaultHealthController extends HealthController {
 
   checkHealth(req: Request, res: Response): void {
     const providerValidations = this.providerService.validateAllProviders();
-    const currentAvailableProviders = this.providerService.getAvailableProviders();
+    const currentAvailableProviders =
+      this.providerService.getAvailableProviders();
 
     res.json({
       status: "ok",

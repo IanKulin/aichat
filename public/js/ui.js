@@ -1,13 +1,18 @@
 // UI helper functions
-import { chatContainer, setConversationList } from './state.js';
+import { chatContainer, setConversationList } from "./state.js";
 
-export function addMessage(content, type = "user", metadata = null, messageTimestamp = null) {
+export function addMessage(
+  content,
+  type = "user",
+  metadata = null,
+  messageTimestamp = null
+) {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message ${type}`;
 
   // Add timestamp data attribute if provided
   if (messageTimestamp) {
-    messageDiv.setAttribute('data-timestamp', messageTimestamp);
+    messageDiv.setAttribute("data-timestamp", messageTimestamp);
   }
 
   if (type === "assistant" && metadata) {
@@ -46,18 +51,18 @@ export function addMessage(content, type = "user", metadata = null, messageTimes
  */
 export function addBranchButton(messageDiv, messageTimestamp) {
   // Don't add button if already exists
-  if (messageDiv.querySelector('.branch-button')) {
+  if (messageDiv.querySelector(".branch-button")) {
     return;
   }
 
-  const branchButton = document.createElement('button');
-  branchButton.className = 'branch-button';
-  branchButton.innerHTML = '⎇ Branch';
-  branchButton.setAttribute('data-timestamp', messageTimestamp);
+  const branchButton = document.createElement("button");
+  branchButton.className = "branch-button";
+  branchButton.innerHTML = "⎇ Branch";
+  branchButton.setAttribute("data-timestamp", messageTimestamp);
 
-  branchButton.addEventListener('click', async (e) => {
+  branchButton.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const { handleBranchClick } = await import('./conversations.js');
+    const { handleBranchClick } = await import("./conversations.js");
     await handleBranchClick(messageTimestamp);
   });
 
@@ -68,12 +73,12 @@ export function addBranchButton(messageDiv, messageTimestamp) {
  * Helper to add button to previous assistant message when new one arrives
  */
 function addButtonToPreviousAssistant() {
-  const assistantMessages = document.querySelectorAll('.message.assistant');
+  const assistantMessages = document.querySelectorAll(".message.assistant");
   if (assistantMessages.length >= 2) {
     // Get second-to-last assistant message
     const previousAssistant = assistantMessages[assistantMessages.length - 2];
-    const timestamp = previousAssistant.getAttribute('data-timestamp');
-    if (timestamp && !previousAssistant.querySelector('.branch-button')) {
+    const timestamp = previousAssistant.getAttribute("data-timestamp");
+    if (timestamp && !previousAssistant.querySelector(".branch-button")) {
       addBranchButton(previousAssistant, parseInt(timestamp));
     }
   }
@@ -84,7 +89,7 @@ function addButtonToPreviousAssistant() {
  * Useful after loading a conversation
  */
 export function addBranchButtonsToMessages() {
-  const assistantMessages = document.querySelectorAll('.message.assistant');
+  const assistantMessages = document.querySelectorAll(".message.assistant");
 
   // Add buttons to all except the last assistant message
   assistantMessages.forEach((messageDiv, index) => {
@@ -93,8 +98,8 @@ export function addBranchButtonsToMessages() {
       return;
     }
 
-    const timestamp = messageDiv.getAttribute('data-timestamp');
-    if (timestamp && !messageDiv.querySelector('.branch-button')) {
+    const timestamp = messageDiv.getAttribute("data-timestamp");
+    if (timestamp && !messageDiv.querySelector(".branch-button")) {
       addBranchButton(messageDiv, parseInt(timestamp));
     }
   });
@@ -135,16 +140,20 @@ export function addSkeletonMessage() {
   scrollToBottom();
 }
 
-export function transformSkeletonToMessage(content, metadata = null, messageTimestamp = null) {
+export function transformSkeletonToMessage(
+  content,
+  metadata = null,
+  messageTimestamp = null
+) {
   const skeletonMessage = document.getElementById("skeleton-message");
   if (!skeletonMessage) return null;
 
-  const skeletonContent = skeletonMessage.querySelector('.skeleton-content');
-  const messageContent = skeletonMessage.querySelector('.message-content');
+  const skeletonContent = skeletonMessage.querySelector(".skeleton-content");
+  const messageContent = skeletonMessage.querySelector(".message-content");
 
   // Set timestamp if provided (for branching functionality)
   const timestamp = messageTimestamp || Date.now();
-  skeletonMessage.setAttribute('data-timestamp', timestamp);
+  skeletonMessage.setAttribute("data-timestamp", timestamp);
 
   // Prepare the actual message content
   if (metadata) {
@@ -163,20 +172,20 @@ export function transformSkeletonToMessage(content, metadata = null, messageTime
   }
 
   // Show the message content
-  messageContent.style.display = 'block';
+  messageContent.style.display = "block";
 
   // Start the transition
-  skeletonContent.classList.add('fade-out');
+  skeletonContent.classList.add("fade-out");
 
   setTimeout(() => {
-    messageContent.classList.add('fade-in');
+    messageContent.classList.add("fade-in");
     // Remove skeleton class and update attributes
-    skeletonMessage.classList.remove('skeleton');
-    skeletonMessage.className = 'message assistant';
-    skeletonMessage.removeAttribute('role');
-    skeletonMessage.removeAttribute('aria-live');
-    skeletonMessage.removeAttribute('aria-label');
-    skeletonMessage.removeAttribute('id');
+    skeletonMessage.classList.remove("skeleton");
+    skeletonMessage.className = "message assistant";
+    skeletonMessage.removeAttribute("role");
+    skeletonMessage.removeAttribute("aria-live");
+    skeletonMessage.removeAttribute("aria-label");
+    skeletonMessage.removeAttribute("id");
 
     // Apply syntax highlighting to any new code blocks
     hljs.highlightAll();
@@ -204,72 +213,76 @@ export function removeSkeletonMessage() {
 }
 
 export function addCopyButtonsToCodeBlocks() {
-  const codeBlocks = document.querySelectorAll('.message.assistant pre:not(.copy-button-added)');
+  const codeBlocks = document.querySelectorAll(
+    ".message.assistant pre:not(.copy-button-added)"
+  );
 
-  codeBlocks.forEach(pre => {
+  codeBlocks.forEach((pre) => {
     // Mark this code block as processed
-    pre.classList.add('copy-button-added');
+    pre.classList.add("copy-button-added");
 
     // Create wrapper div if it doesn't exist
-    if (!pre.parentElement.classList.contains('code-block-wrapper')) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-block-wrapper';
+    if (!pre.parentElement.classList.contains("code-block-wrapper")) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block-wrapper";
       pre.parentElement.insertBefore(wrapper, pre);
       wrapper.appendChild(pre);
     }
 
     // Create copy button
-    const copyButton = document.createElement('button');
-    copyButton.className = 'copy-button';
-    copyButton.textContent = 'Copy';
-    copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+    const copyButton = document.createElement("button");
+    copyButton.className = "copy-button";
+    copyButton.textContent = "Copy";
+    copyButton.setAttribute("aria-label", "Copy code to clipboard");
 
     // Add click handler
-    copyButton.addEventListener('click', async () => {
+    copyButton.addEventListener("click", async () => {
       try {
-        const codeElement = pre.querySelector('code');
-        const textToCopy = codeElement ? codeElement.textContent : pre.textContent;
+        const codeElement = pre.querySelector("code");
+        const textToCopy = codeElement
+          ? codeElement.textContent
+          : pre.textContent;
 
         await navigator.clipboard.writeText(textToCopy);
 
         // Visual feedback
         const originalText = copyButton.textContent;
-        copyButton.textContent = 'Copied!';
-        copyButton.classList.add('copied');
+        copyButton.textContent = "Copied!";
+        copyButton.classList.add("copied");
 
         setTimeout(() => {
           copyButton.textContent = originalText;
-          copyButton.classList.remove('copied');
+          copyButton.classList.remove("copied");
         }, 2000);
-
       } catch (err) {
         // Fallback for older browsers or when clipboard API fails
-        console.warn('Failed to copy to clipboard:', err);
+        console.warn("Failed to copy to clipboard:", err);
 
         // Try older method
         try {
-          const textArea = document.createElement('textarea');
-          const codeElement = pre.querySelector('code');
-          textArea.value = codeElement ? codeElement.textContent : pre.textContent;
+          const textArea = document.createElement("textarea");
+          const codeElement = pre.querySelector("code");
+          textArea.value = codeElement
+            ? codeElement.textContent
+            : pre.textContent;
           document.body.appendChild(textArea);
           textArea.select();
-          document.execCommand('copy');
+          document.execCommand("copy");
           document.body.removeChild(textArea);
 
           // Visual feedback
           const originalText = copyButton.textContent;
-          copyButton.textContent = 'Copied!';
-          copyButton.classList.add('copied');
+          copyButton.textContent = "Copied!";
+          copyButton.classList.add("copied");
 
           setTimeout(() => {
             copyButton.textContent = originalText;
-            copyButton.classList.remove('copied');
+            copyButton.classList.remove("copied");
           }, 2000);
-
         } catch (fallbackErr) {
           // If all else fails, show error feedback
           const originalText = copyButton.textContent;
-          copyButton.textContent = 'Failed';
+          copyButton.textContent = "Failed";
 
           setTimeout(() => {
             copyButton.textContent = originalText;
@@ -285,10 +298,10 @@ export function addCopyButtonsToCodeBlocks() {
 
 export function showError(message, duration = 5000) {
   // Create or update error element
-  let errorEl = document.querySelector('.app-error');
+  let errorEl = document.querySelector(".app-error");
   if (!errorEl) {
-    errorEl = document.createElement('div');
-    errorEl.className = 'app-error';
+    errorEl = document.createElement("div");
+    errorEl.className = "app-error";
     errorEl.style.cssText = `
       position: fixed;
       top: 20px;
@@ -305,19 +318,19 @@ export function showError(message, duration = 5000) {
   }
 
   errorEl.textContent = message;
-  errorEl.style.display = 'block';
+  errorEl.style.display = "block";
 
   setTimeout(() => {
-    errorEl.style.display = 'none';
+    errorEl.style.display = "none";
   }, duration);
 }
 
 export function showSuccess(message, duration = 3000) {
   // Create or update success element
-  let successEl = document.querySelector('.app-success');
+  let successEl = document.querySelector(".app-success");
   if (!successEl) {
-    successEl = document.createElement('div');
-    successEl.className = 'app-success';
+    successEl = document.createElement("div");
+    successEl.className = "app-success";
     successEl.style.cssText = `
       position: fixed;
       top: 20px;
@@ -334,16 +347,16 @@ export function showSuccess(message, duration = 3000) {
   }
 
   successEl.textContent = message;
-  successEl.style.display = 'block';
+  successEl.style.display = "block";
 
   setTimeout(() => {
-    successEl.style.display = 'none';
+    successEl.style.display = "none";
   }, duration);
 }
 
 export function showConversationLoader() {
-  const loader = document.createElement('div');
-  loader.id = 'conversationLoader';
+  const loader = document.createElement("div");
+  loader.id = "conversationLoader";
   loader.style.cssText = `
     position: absolute;
     top: 50%;
@@ -352,13 +365,13 @@ export function showConversationLoader() {
     text-align: center;
     color: var(--text-secondary);
   `;
-  loader.textContent = 'Loading conversation...';
-  chatContainer.style.position = 'relative';
+  loader.textContent = "Loading conversation...";
+  chatContainer.style.position = "relative";
   chatContainer.appendChild(loader);
 }
 
 export function hideConversationLoader() {
-  const loader = document.getElementById('conversationLoader');
+  const loader = document.getElementById("conversationLoader");
   if (loader) {
     loader.remove();
   }
@@ -366,7 +379,7 @@ export function hideConversationLoader() {
 
 export function showSaveIndicator() {
   // Brief visual feedback for save operations
-  const indicator = document.createElement('div');
+  const indicator = document.createElement("div");
   indicator.style.cssText = `
     position: fixed;
     bottom: 100px;
@@ -379,7 +392,7 @@ export function showSaveIndicator() {
     z-index: 1000;
     opacity: 0.8;
   `;
-  indicator.textContent = 'Saved';
+  indicator.textContent = "Saved";
   document.body.appendChild(indicator);
 
   setTimeout(() => {
@@ -387,13 +400,17 @@ export function showSaveIndicator() {
   }, 1000);
 }
 
-export function filterConversations(query, conversationList, updateConversationListUI) {
+export function filterConversations(
+  query,
+  conversationList,
+  updateConversationListUI
+) {
   if (!query.trim()) {
     updateConversationListUI();
     return;
   }
 
-  const filtered = conversationList.filter(conv =>
+  const filtered = conversationList.filter((conv) =>
     conv.title.toLowerCase().includes(query.toLowerCase())
   );
 

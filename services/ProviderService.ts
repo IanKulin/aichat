@@ -15,7 +15,10 @@ export abstract class ProviderService {
   abstract getAvailableProviders(): SupportedProvider[];
   abstract getProviderInfo(): ProviderInfo[];
   abstract validateProvider(provider: string): boolean;
-  abstract getProviderModel(provider: SupportedProvider, model?: string): unknown;
+  abstract getProviderModel(
+    provider: SupportedProvider,
+    model?: string
+  ): unknown;
   abstract validateApiKey(provider: SupportedProvider): ApiKeyValidation;
   abstract validateAllProviders(): Record<SupportedProvider, ApiKeyValidation>;
 }
@@ -24,7 +27,10 @@ export class DefaultProviderService extends ProviderService {
   private configService: ConfigService;
   private providerRepository: ProviderRepository;
 
-  constructor(configService: ConfigService, providerRepository: ProviderRepository) {
+  constructor(
+    configService: ConfigService,
+    providerRepository: ProviderRepository
+  ) {
     super();
     this.configService = configService;
     this.providerRepository = providerRepository;
@@ -40,7 +46,7 @@ export class DefaultProviderService extends ProviderService {
   getProviderInfo(): ProviderInfo[] {
     const availableProviders = this.getAvailableProviders();
     const configs = this.configService.getProviderConfigs();
-    
+
     return availableProviders.map((provider) => ({
       id: provider,
       name: configs[provider].name,

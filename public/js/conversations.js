@@ -11,9 +11,17 @@ import {
   conversationListEl,
   setCurrentConversation,
   setConversationList,
-  setConversationHistory
-} from './state.js';
-import { addMessage, showError, showSuccess, showConversationLoader, hideConversationLoader, addCopyButtonsToCodeBlocks, addBranchButtonsToMessages } from './ui.js';
+  setConversationHistory,
+} from "./state.js";
+import {
+  addMessage,
+  showError,
+  showSuccess,
+  showConversationLoader,
+  hideConversationLoader,
+  addCopyButtonsToCodeBlocks,
+  addBranchButtonsToMessages,
+} from "./ui.js";
 
 export async function clearConversation() {
   // Reset conversation state
@@ -21,7 +29,7 @@ export async function clearConversation() {
   setConversationHistory([]);
 
   // Clear chat display
-  chatContainer.innerHTML = '';
+  chatContainer.innerHTML = "";
 
   // Update UI - no title initially
   conversationTitle.textContent = "";
@@ -46,8 +54,8 @@ export async function createNewConversation() {
 
     return conversation;
   } catch (error) {
-    console.error('Failed to create conversation:', error);
-    showError('Failed to create new conversation');
+    console.error("Failed to create conversation:", error);
+    showError("Failed to create new conversation");
     return null;
   }
 }
@@ -69,10 +77,13 @@ export async function generateAndSetTitle(firstMessage) {
 
     if (titleResponse.title) {
       // Update the conversation title
-      await updateConversationTitle(currentConversation.id, titleResponse.title);
+      await updateConversationTitle(
+        currentConversation.id,
+        titleResponse.title
+      );
     }
   } catch (error) {
-    console.warn('Failed to generate title:', error);
+    console.warn("Failed to generate title:", error);
     // Fallback to a simple title
     await updateConversationTitle(currentConversation.id, "Chat");
   }
@@ -90,22 +101,26 @@ export async function loadConversation(conversationId) {
     setConversationHistory(conversation.messages || []);
 
     // Clear and rebuild chat display
-    chatContainer.innerHTML = '';
+    chatContainer.innerHTML = "";
 
     const conversationHistory = getConversationHistory();
     if (conversationHistory.length === 0) {
       // Leave chat container empty for new conversations
     } else {
-      conversationHistory.forEach(msg => {
-        const metadata = msg.provider && msg.model ? {
-          providerName: msg.provider,
-          model: msg.model
-        } : null;
+      conversationHistory.forEach((msg) => {
+        const metadata =
+          msg.provider && msg.model
+            ? {
+                providerName: msg.provider,
+                model: msg.model,
+              }
+            : null;
 
         // Pass timestamp for assistant messages to enable branching
-        const messageTimestamp = msg.role === 'assistant' && msg.timestamp
-          ? new Date(msg.timestamp).getTime()
-          : null;
+        const messageTimestamp =
+          msg.role === "assistant" && msg.timestamp
+            ? new Date(msg.timestamp).getTime()
+            : null;
 
         addMessage(msg.content, msg.role, metadata, messageTimestamp);
       });
@@ -123,8 +138,8 @@ export async function loadConversation(conversationId) {
 
     hideConversationLoader();
   } catch (error) {
-    console.error('Failed to load conversation:', error);
-    showError('Failed to load conversation');
+    console.error("Failed to load conversation:", error);
+    showError("Failed to load conversation");
     hideConversationLoader();
   }
 }
@@ -140,13 +155,13 @@ export async function updateConversationTitle(id, newTitle) {
     }
     refreshConversationList();
   } catch (error) {
-    console.error('Failed to update conversation title:', error);
-    showError('Failed to update title');
+    console.error("Failed to update conversation title:", error);
+    showError("Failed to update title");
   }
 }
 
 export async function deleteConversation(id) {
-  if (!confirm('Are you sure you want to delete this conversation?')) return;
+  if (!confirm("Are you sure you want to delete this conversation?")) return;
 
   try {
     const conversationAPI = getConversationAPI();
@@ -159,10 +174,10 @@ export async function deleteConversation(id) {
     }
 
     refreshConversationList();
-    showSuccess('Conversation deleted');
+    showSuccess("Conversation deleted");
   } catch (error) {
-    console.error('Failed to delete conversation:', error);
-    showError('Failed to delete conversation');
+    console.error("Failed to delete conversation:", error);
+    showError("Failed to delete conversation");
   }
 }
 
@@ -171,23 +186,23 @@ export async function handleBranchClick(messageTimestamp) {
     const currentConversation = getCurrentConversation();
 
     if (!currentConversation) {
-      showError('No active conversation to branch from');
+      showError("No active conversation to branch from");
       return;
     }
 
     if (!messageTimestamp || messageTimestamp <= 0) {
-      showError('Invalid message timestamp');
+      showError("Invalid message timestamp");
       return;
     }
 
-    const newTitle = currentConversation.title + ' (Branch)';
+    const newTitle = currentConversation.title + " (Branch)";
 
     // Show loading state
-    const branchButtons = document.querySelectorAll('.branch-button');
-    branchButtons.forEach(btn => {
-      if (btn.getAttribute('data-timestamp') === String(messageTimestamp)) {
-        btn.classList.add('branching');
-        btn.textContent = 'Branching...';
+    const branchButtons = document.querySelectorAll(".branch-button");
+    branchButtons.forEach((btn) => {
+      if (btn.getAttribute("data-timestamp") === String(messageTimestamp)) {
+        btn.classList.add("branching");
+        btn.textContent = "Branching...";
       }
     });
 
@@ -201,17 +216,16 @@ export async function handleBranchClick(messageTimestamp) {
 
     // Load new conversation
     await loadConversation(branchedConversation.id);
-    showSuccess('Conversation branched successfully');
-
+    showSuccess("Conversation branched successfully");
   } catch (error) {
-    console.error('Failed to branch conversation:', error);
-    showError('Failed to branch conversation');
+    console.error("Failed to branch conversation:", error);
+    showError("Failed to branch conversation");
 
     // Reset button state
-    const branchButtons = document.querySelectorAll('.branch-button.branching');
-    branchButtons.forEach(btn => {
-      btn.classList.remove('branching');
-      btn.innerHTML = '⎇ Branch';
+    const branchButtons = document.querySelectorAll(".branch-button.branching");
+    branchButtons.forEach((btn) => {
+      btn.classList.remove("branching");
+      btn.innerHTML = "⎇ Branch";
     });
   }
 }
@@ -223,47 +237,48 @@ export async function refreshConversationList() {
     setConversationList(data.conversations || []);
     updateConversationListUI();
   } catch (error) {
-    console.error('Failed to refresh conversation list:', error);
+    console.error("Failed to refresh conversation list:", error);
   }
 }
 
 export function updateConversationListUI() {
-  let emptyState = document.getElementById('conversationListEmpty');
+  let emptyState = document.getElementById("conversationListEmpty");
 
   const conversationList = getConversationList();
   if (conversationList.length === 0) {
     // Create empty state element if it doesn't exist
     if (!emptyState) {
-      emptyState = document.createElement('div');
-      emptyState.className = 'conversation-list-empty';
-      emptyState.id = 'conversationListEmpty';
-      emptyState.textContent = 'No conversations yet. Start chatting to create your first conversation!';
+      emptyState = document.createElement("div");
+      emptyState.className = "conversation-list-empty";
+      emptyState.id = "conversationListEmpty";
+      emptyState.textContent =
+        "No conversations yet. Start chatting to create your first conversation!";
     }
 
-    conversationListEl.innerHTML = '';
+    conversationListEl.innerHTML = "";
     conversationListEl.appendChild(emptyState);
     return;
   }
 
   // Hide empty state if it exists
   if (emptyState) {
-    emptyState.style.display = 'none';
+    emptyState.style.display = "none";
   }
 
-  conversationListEl.innerHTML = '';
+  conversationListEl.innerHTML = "";
 
-  conversationList.forEach(conversation => {
+  conversationList.forEach((conversation) => {
     const item = createConversationListItem(conversation);
     conversationListEl.appendChild(item);
   });
 }
 
 export function createConversationListItem(conversation) {
-  const item = document.createElement('div');
-  item.className = 'conversation-item';
+  const item = document.createElement("div");
+  item.className = "conversation-item";
   const currentConversation = getCurrentConversation();
   if (currentConversation && currentConversation.id === conversation.id) {
-    item.classList.add('active');
+    item.classList.add("active");
   }
 
   item.innerHTML = `
@@ -278,14 +293,14 @@ export function createConversationListItem(conversation) {
   `;
 
   // Add click handler for loading conversation
-  item.addEventListener('click', (e) => {
-    if (!e.target.classList.contains('action-btn')) {
+  item.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("action-btn")) {
       loadConversation(conversation.id);
     }
   });
 
   // Add handlers for action buttons
-  item.querySelector('.delete-btn').addEventListener('click', (e) => {
+  item.querySelector(".delete-btn").addEventListener("click", (e) => {
     e.stopPropagation();
     deleteConversation(conversation.id);
   });

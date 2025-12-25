@@ -5,13 +5,20 @@ import type {
   Conversation,
   ConversationWithMessages,
   CreateConversationData,
-  SaveMessageData
+  SaveMessageData,
 } from "../repositories/ChatRepository.ts";
 
 export abstract class ConversationService {
-  abstract createConversation(data: CreateConversationData): Promise<Conversation>;
-  abstract getConversation(id: string): Promise<ConversationWithMessages | null>;
-  abstract listConversations(limit?: number, offset?: number): Promise<Conversation[]>;
+  abstract createConversation(
+    data: CreateConversationData
+  ): Promise<Conversation>;
+  abstract getConversation(
+    id: string
+  ): Promise<ConversationWithMessages | null>;
+  abstract listConversations(
+    limit?: number,
+    offset?: number
+  ): Promise<Conversation[]>;
   abstract updateConversationTitle(id: string, title: string): Promise<void>;
   abstract deleteConversation(id: string): Promise<void>;
   abstract saveMessageToConversation(data: SaveMessageData): Promise<void>;
@@ -31,7 +38,9 @@ export class DefaultConversationService extends ConversationService {
     this.chatRepository = chatRepository;
   }
 
-  async createConversation(data: CreateConversationData): Promise<Conversation> {
+  async createConversation(
+    data: CreateConversationData
+  ): Promise<Conversation> {
     return await this.chatRepository.createConversation(data);
   }
 
@@ -39,7 +48,10 @@ export class DefaultConversationService extends ConversationService {
     return await this.chatRepository.getConversation(id);
   }
 
-  async listConversations(limit?: number, offset?: number): Promise<Conversation[]> {
+  async listConversations(
+    limit?: number,
+    offset?: number
+  ): Promise<Conversation[]> {
     return await this.chatRepository.listConversations(limit, offset);
   }
 
@@ -59,7 +71,8 @@ export class DefaultConversationService extends ConversationService {
     const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
     const cutoffTimestamp = Date.now() - retentionMs;
 
-    const deletedCount = await this.chatRepository.deleteOldConversations(cutoffTimestamp);
+    const deletedCount =
+      await this.chatRepository.deleteOldConversations(cutoffTimestamp);
     return deletedCount;
   }
 

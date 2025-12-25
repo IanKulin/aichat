@@ -1,8 +1,8 @@
-import { showError, showSuccess } from './ui.js';
+import { showError, showSuccess } from "./ui.js";
 
 class SettingsAPI {
   constructor() {
-    this.baseURL = '/api/settings';
+    this.baseURL = "/api/settings";
   }
 
   async getApiKeys() {
@@ -17,14 +17,16 @@ class SettingsAPI {
 
   async setApiKey(provider, key) {
     const response = await fetch(`${this.baseURL}/keys`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider, key }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to set API key: ${response.status}`);
+      throw new Error(
+        errorData.error || `Failed to set API key: ${response.status}`
+      );
     }
 
     return response.json();
@@ -32,12 +34,14 @@ class SettingsAPI {
 
   async deleteApiKey(provider) {
     const response = await fetch(`${this.baseURL}/keys/${provider}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to delete API key: ${response.status}`);
+      throw new Error(
+        errorData.error || `Failed to delete API key: ${response.status}`
+      );
     }
 
     return response.json();
@@ -58,7 +62,7 @@ class SettingsUI {
 
   async loadProviderMetadata() {
     try {
-      const response = await fetch('/api/providers');
+      const response = await fetch("/api/providers");
       if (!response.ok) {
         throw new Error(`Failed to load provider metadata: ${response.status}`);
       }
@@ -66,23 +70,25 @@ class SettingsUI {
       const providersData = await response.json();
 
       // Extract provider IDs and names
-      this.providers = providersData.providers.map(p => p.id);
+      this.providers = providersData.providers.map((p) => p.id);
       this.providerNames = {};
-      providersData.providers.forEach(p => {
+      providersData.providers.forEach((p) => {
         this.providerNames[p.id] = p.name;
       });
     } catch (error) {
-      console.error('Failed to load provider metadata:', error);
-      showError('Failed to load provider information. Please refresh the page.');
+      console.error("Failed to load provider metadata:", error);
+      showError(
+        "Failed to load provider information. Please refresh the page."
+      );
     }
   }
 
   async loadApiKeys() {
     try {
       const keys = await this.api.getApiKeys();
-      const container = document.getElementById('api-keys-container');
+      const container = document.getElementById("api-keys-container");
 
-      container.innerHTML = '';
+      container.innerHTML = "";
 
       for (const provider of this.providers) {
         const keyStatus = keys[provider];
@@ -90,18 +96,18 @@ class SettingsUI {
         container.appendChild(item);
       }
     } catch (error) {
-      console.error('Failed to load API keys:', error);
-      showError('Failed to load API keys. Please refresh the page.');
+      console.error("Failed to load API keys:", error);
+      showError("Failed to load API keys. Please refresh the page.");
     }
   }
 
   createApiKeyItem(provider, keyStatus) {
-    const div = document.createElement('div');
-    div.className = 'api-key-item';
+    const div = document.createElement("div");
+    div.className = "api-key-item";
 
-    const displayValue = keyStatus.configured ? keyStatus.maskedKey : '';
-    const statusClass = keyStatus.configured ? 'configured' : '';
-    const statusText = keyStatus.configured ? 'Configured' : 'Not configured';
+    const displayValue = keyStatus.configured ? keyStatus.maskedKey : "";
+    const statusClass = keyStatus.configured ? "configured" : "";
+    const statusText = keyStatus.configured ? "Configured" : "Not configured";
 
     div.innerHTML = `
       <div class="api-key-header">
@@ -118,36 +124,42 @@ class SettingsUI {
           placeholder="Enter API key"
           value="${displayValue}"
           data-provider="${provider}"
-          ${keyStatus.configured ? 'disabled' : ''}
+          ${keyStatus.configured ? "disabled" : ""}
         />
-        ${keyStatus.configured ? `
+        ${
+          keyStatus.configured
+            ? `
           <button class="btn btn-danger" data-provider="${provider}" data-action="delete">
             Delete
           </button>
-        ` : `
+        `
+            : `
           <button class="btn btn-primary" data-provider="${provider}" data-action="save">
             Save
           </button>
-        `}
+        `
+        }
       </div>
       <div id="validation-${provider}" class="validation-status"></div>
     `;
 
     // Add event listeners
-    const input = div.querySelector('.api-key-input');
+    const input = div.querySelector(".api-key-input");
     const saveBtn = div.querySelector('[data-action="save"]');
     const deleteBtn = div.querySelector('[data-action="delete"]');
 
     // Clear validation message when user types
     if (input && !keyStatus.configured) {
-      input.addEventListener('input', () => this.clearValidationStatus(provider));
+      input.addEventListener("input", () =>
+        this.clearValidationStatus(provider)
+      );
     }
 
     if (saveBtn) {
-      saveBtn.addEventListener('click', () => this.saveApiKey(provider));
+      saveBtn.addEventListener("click", () => this.saveApiKey(provider));
     }
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => this.deleteApiKey(provider));
+      deleteBtn.addEventListener("click", () => this.deleteApiKey(provider));
     }
 
     return div;
@@ -158,28 +170,30 @@ class SettingsUI {
     const key = input.value.trim();
 
     if (!key) {
-      this.showValidationStatus(provider, 'invalid', 'API key is required');
+      this.showValidationStatus(provider, "invalid", "API key is required");
       return;
     }
 
     // Clear any previous validation message
     this.clearValidationStatus(provider);
-    this.showValidationStatus(provider, 'validating', 'Validating...');
+    this.showValidationStatus(provider, "validating", "Validating...");
 
     try {
       const result = await this.api.setApiKey(provider, key);
 
       if (result.valid) {
-        this.showValidationStatus(provider, 'valid', '✓ Valid');
-        showSuccess(`${this.providerNames[provider]} API key saved successfully`);
+        this.showValidationStatus(provider, "valid", "✓ Valid");
+        showSuccess(
+          `${this.providerNames[provider]} API key saved successfully`
+        );
         // Reduced delay for better UX
         setTimeout(() => this.loadApiKeys(), 800);
       } else {
-        this.showValidationStatus(provider, 'invalid', `✗ ${result.message}`);
+        this.showValidationStatus(provider, "invalid", `✗ ${result.message}`);
       }
     } catch (error) {
-      console.error('Failed to save API key:', error);
-      this.showValidationStatus(provider, 'invalid', `✗ ${error.message}`);
+      console.error("Failed to save API key:", error);
+      this.showValidationStatus(provider, "invalid", `✗ ${error.message}`);
     }
   }
 
@@ -193,7 +207,7 @@ class SettingsUI {
       showSuccess(`${this.providerNames[provider]} API key deleted`);
       await this.loadApiKeys();
     } catch (error) {
-      console.error('Failed to delete API key:', error);
+      console.error("Failed to delete API key:", error);
       showError(`Failed to delete API key: ${error.message}`);
     }
   }
@@ -201,8 +215,8 @@ class SettingsUI {
   clearValidationStatus(provider) {
     const statusDiv = document.getElementById(`validation-${provider}`);
     if (statusDiv) {
-      statusDiv.className = 'validation-status';
-      statusDiv.textContent = '';
+      statusDiv.className = "validation-status";
+      statusDiv.textContent = "";
     }
   }
 
@@ -212,7 +226,7 @@ class SettingsUI {
 
     statusDiv.className = `validation-status ${status}`;
 
-    if (status === 'validating') {
+    if (status === "validating") {
       statusDiv.innerHTML = `<span class="spinner"></span> ${message}`;
     } else {
       statusDiv.textContent = message;
