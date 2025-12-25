@@ -52,7 +52,9 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(cat:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(timeout 30s npm test:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }

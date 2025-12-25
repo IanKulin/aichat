@@ -11,6 +11,10 @@ import {
 } from "../services/ProviderService.ts";
 import { ChatService, DefaultChatService } from "../services/ChatService.ts";
 import {
+  ConversationService,
+  DefaultConversationService,
+} from "../services/ConversationService.ts";
+import {
   ModelRepository,
   FileModelRepository,
 } from "../repositories/ModelRepository.ts";
@@ -83,17 +87,18 @@ export function initializeServices(): void {
     return new DefaultProviderService(configService, providerRepository);
   });
 
-  // Register ChatService (depends on ProviderService, ConfigService, and ChatRepository)
+  // Register ChatService (depends on ProviderService and ConfigService only)
   registerSingleton<ChatService>("ChatService", () => {
     const providerService =
       container.resolve<ProviderService>("ProviderService");
     const configService = container.resolve<ConfigService>("ConfigService");
+    return new DefaultChatService(providerService, configService);
+  });
+
+  // Register ConversationService (depends on ChatRepository only)
+  registerSingleton<ConversationService>("ConversationService", () => {
     const chatRepository = container.resolve<ChatRepository>("ChatRepository");
-    return new DefaultChatService(
-      providerService,
-      configService,
-      chatRepository
-    );
+    return new DefaultConversationService(chatRepository);
   });
 
   // Register Controllers
@@ -122,8 +127,10 @@ export function initializeServices(): void {
   });
 
   registerSingleton<ConversationController>("ConversationController", () => {
-    const chatService = container.resolve<ChatService>("ChatService");
-    return new DefaultConversationController(chatService);
+    const conversationService = container.resolve<ConversationService>(
+      "ConversationService"
+    );
+    return new DefaultConversationController(conversationService);
   });
 
   // Register SettingsService (depends on SettingsRepository, ProviderRepository, and ConfigService)
@@ -179,6 +186,10 @@ export function getChatRepository(): ChatRepository {
 
 export function getConversationController(): ConversationController {
   return container.resolve<ConversationController>("ConversationController");
+}
+
+export function getConversationService(): ConversationService {
+  return container.resolve<ConversationService>("ConversationService");
 }
 
 export function getSettingsRepository(): ISettingsRepository {

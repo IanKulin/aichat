@@ -21,7 +21,6 @@ marked.use({
 
 // Import shared types
 import type { SupportedProvider, ChatMessage } from "../lib/types.ts";
-import type { ChatRepository, Conversation, ConversationWithMessages, CreateConversationData, SaveMessageData } from "../repositories/ChatRepository.ts";
 
 export type ChatResponse = {
   response: string;
@@ -42,36 +41,19 @@ export abstract class ChatService {
     provider?: string,
     model?: string
   ): Promise<unknown>;
-  
-  // Conversation management methods (optional - may return null if not implemented)
-  abstract createConversation?(data: CreateConversationData): Promise<Conversation>;
-  abstract getConversation?(id: string): Promise<ConversationWithMessages | null>;
-  abstract listConversations?(limit?: number, offset?: number): Promise<Conversation[]>;
-  abstract updateConversationTitle?(id: string, title: string): Promise<void>;
-  abstract deleteConversation?(id: string): Promise<void>;
-  abstract saveMessageToConversation?(data: SaveMessageData): Promise<void>;
-  abstract cleanupOldConversations?(retentionDays: number): Promise<number>;
-  abstract branchConversation?(
-    sourceConversationId: string,
-    upToTimestamp: number,
-    newTitle: string
-  ): Promise<ConversationWithMessages>;
 }
 
 export class DefaultChatService extends ChatService {
   private providerService: ProviderService;
   private configService: ConfigService;
-  private chatRepository?: ChatRepository;
 
   constructor(
     providerService: ProviderService,
-    configService: ConfigService,
-    chatRepository?: ChatRepository
+    configService: ConfigService
   ) {
     super();
     this.providerService = providerService;
     this.configService = configService;
-    this.chatRepository = chatRepository;
   }
 
   async processMessage(
@@ -187,75 +169,5 @@ export class DefaultChatService extends ChatService {
       }
       throw error;
     }
-  }
-
-  // Conversation management methods
-  async createConversation(data: CreateConversationData): Promise<Conversation> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    return await this.chatRepository.createConversation(data);
-  }
-
-  async getConversation(id: string): Promise<ConversationWithMessages | null> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    return await this.chatRepository.getConversation(id);
-  }
-
-  async listConversations(limit?: number, offset?: number): Promise<Conversation[]> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    return await this.chatRepository.listConversations(limit, offset);
-  }
-
-  async updateConversationTitle(id: string, title: string): Promise<void> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    await this.chatRepository.updateConversationTitle(id, title);
-  }
-
-  async deleteConversation(id: string): Promise<void> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    await this.chatRepository.deleteConversation(id);
-  }
-
-  async saveMessageToConversation(data: SaveMessageData): Promise<void> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    await this.chatRepository.saveMessage(data);
-  }
-
-  async cleanupOldConversations(retentionDays: number): Promise<number> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-
-    const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
-    const cutoffTimestamp = Date.now() - retentionMs;
-
-    const deletedCount = await this.chatRepository.deleteOldConversations(cutoffTimestamp);
-    return deletedCount;
-  }
-
-  async branchConversation(
-    sourceConversationId: string,
-    upToTimestamp: number,
-    newTitle: string
-  ): Promise<ConversationWithMessages> {
-    if (!this.chatRepository) {
-      throw new Error("Chat repository not configured for persistence");
-    }
-    return await this.chatRepository.branchConversation(
-      sourceConversationId,
-      upToTimestamp,
-      newTitle
-    );
   }
 }

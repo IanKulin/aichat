@@ -5,31 +5,16 @@ import assert from "node:assert";
 import request from "supertest";
 import express from "express";
 import { DefaultConversationController } from "../../controllers/ConversationController.ts";
-import type { ChatService } from "../../services/ChatService.ts";
+import type { ConversationService } from "../../services/ConversationService.ts";
 import { asyncHandler } from "../../middleware/errorHandler.ts";
 
-// Mock ChatService implementation
-class MockChatService implements ChatService {
+// Mock ConversationService implementation
+class MockConversationService implements ConversationService {
   private conversations = new Map();
   private messages = new Map();
   private nextId = 1;
 
-  // Required abstract methods (not used in controller tests but needed for interface)
-  async processMessage() {
-    return {
-      response: "Mock response",
-      timestamp: new Date().toISOString(),
-      provider: "mock",
-      providerName: "Mock Provider",
-      model: "mock-model"
-    };
-  }
-
-  async streamMessage() {
-    return {};
-  }
-
-  // Persistence methods
+  // Conversation management methods
   async createConversation(data: any) {
     const conversation = {
       id: `conv-${this.nextId++}`,
@@ -96,23 +81,35 @@ class MockChatService implements ChatService {
       model: data.model
     };
     this.messages.set(message.id, message);
-    
+
     // Update conversation timestamp
     const conversation = this.conversations.get(data.conversationId);
     if (conversation) {
       conversation.updatedAt = new Date();
     }
   }
+
+  async cleanupOldConversations(_retentionDays: number) {
+    return 0;
+  }
+
+  async branchConversation(_sourceConversationId: string, _upToTimestamp: number, _newTitle: string) {
+    const newConv = await this.createConversation({ title: _newTitle });
+    return {
+      ...newConv,
+      messages: []
+    };
+  }
 }
 
 describe("ConversationController Tests", () => {
   let app: express.Application;
-  let mockChatService: MockChatService;
+  let mockConversationService: MockConversationService;
   let controller: DefaultConversationController;
 
   beforeEach(() => {
-    mockChatService = new MockChatService();
-    controller = new DefaultConversationController(mockChatService);
+    mockConversationService = new MockConversationService();
+    controller = new DefaultConversationController(mockConversationService);
     
     app = express();
     app.use(express.json());
@@ -196,8 +193,8 @@ describe("ConversationController Tests", () => {
   describe("GET /api/conversations", () => {
     it("should list conversations", async () => {
       // Create some test conversations
-      await mockChatService.createConversation({ title: "Conv 1" });
-      await mockChatService.createConversation({ title: "Conv 2" });
+      await mockConversationService.createConversation({ title: "Conv 1" });
+      await mockConversationService.createConversation({ title: "Conv 2" });
 
       const response = await request(app)
         .get("/api/conversations")
@@ -211,7 +208,7 @@ describe("ConversationController Tests", () => {
     it("should handle limit parameter", async () => {
       // Create test conversations
       for (let i = 1; i <= 5; i++) {
-        await mockChatService.createConversation({ title: `Conv ${i}` });
+        await mockConversationService.createConversation({ title: `Conv ${i}` });
       }
 
       const response = await request(app)
@@ -225,7 +222,7 @@ describe("ConversationController Tests", () => {
     it("should handle offset parameter", async () => {
       // Create test conversations
       for (let i = 1; i <= 5; i++) {
-        await mockChatService.createConversation({ title: `Conv ${i}` });
+        await mockConversationService.createConversation({ title: `Conv ${i}` });
       }
 
       const response = await request(app)
@@ -263,7 +260,7 @@ describe("ConversationController Tests", () => {
 
   describe("GET /api/conversations/:id", () => {
     it("should get conversation by ID", async () => {
-      const conversation = await mockChatService.createConversation({ title: "Test Conv" });
+      const conversation = await mockConversationService.createConversation({ title: "Test Conv" });
 
       const response = await request(app)
         .get(`/api/conversations/${conversation.id}`)
@@ -286,7 +283,7 @@ describe("ConversationController Tests", () => {
 
   describe("PUT /api/conversations/:id/title", () => {
     it("should update conversation title", async () => {
-      const conversation = await mockChatService.createConversation({ title: "Original Title" });
+      const conversation = await mockConversationService.createConversation({ title: "Original Title" });
 
       const response = await request(app)
         .put(`/api/conversations/${conversation.id}/title`)
@@ -297,7 +294,7 @@ describe("ConversationController Tests", () => {
       assert.ok(response.body.message.includes("updated successfully"));
 
       // Verify the title was actually updated
-      const updated = await mockChatService.getConversation(conversation.id);
+      const updated = await mockConversationService.getConversation(conversation.id);
       assert.strictEqual(updated!.title, "Updated Title");
     });
 
@@ -311,7 +308,7 @@ describe("ConversationController Tests", () => {
     });
 
     it("should reject empty title", async () => {
-      const conversation = await mockChatService.createConversation({ title: "Original" });
+      const conversation = await mockConversationService.createConversation({ title: "Original" });
 
       const response = await request(app)
         .put(`/api/conversations/${conversation.id}/title`)
@@ -322,21 +319,21 @@ describe("ConversationController Tests", () => {
     });
 
     it("should trim whitespace from title", async () => {
-      const conversation = await mockChatService.createConversation({ title: "Original" });
+      const conversation = await mockConversationService.createConversation({ title: "Original" });
 
       await request(app)
         .put(`/api/conversations/${conversation.id}/title`)
         .send({ title: "  Updated Title  " })
         .expect(200);
 
-      const updated = await mockChatService.getConversation(conversation.id);
+      const updated = await mockConversationService.getConversation(conversation.id);
       assert.strictEqual(updated!.title, "Updated Title");
     });
   });
 
   describe("DELETE /api/conversations/:id", () => {
     it("should delete conversation", async () => {
-      const conversation = await mockChatService.createConversation({ title: "To Delete" });
+      const conversation = await mockConversationService.createConversation({ title: "To Delete" });
 
       const response = await request(app)
         .delete(`/api/conversations/${conversation.id}`)
@@ -346,7 +343,7 @@ describe("ConversationController Tests", () => {
       assert.ok(response.body.message.includes("deleted successfully"));
 
       // Verify conversation was deleted
-      const deleted = await mockChatService.getConversation(conversation.id);
+      const deleted = await mockConversationService.getConversation(conversation.id);
       assert.strictEqual(deleted, null);
     });
 
@@ -363,7 +360,7 @@ describe("ConversationController Tests", () => {
     let conversationId: string;
 
     beforeEach(async () => {
-      const conversation = await mockChatService.createConversation({ title: "Test Conv" });
+      const conversation = await mockConversationService.createConversation({ title: "Test Conv" });
       conversationId = conversation.id;
     });
 

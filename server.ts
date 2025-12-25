@@ -9,7 +9,7 @@ import {
   getProviderController,
   getHealthController,
   getConversationController,
-  getChatService,
+  getConversationService,
   getSettingsController,
 } from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/errorHandler.ts";
@@ -73,11 +73,11 @@ const enableStartupCleanup = process.env.ENABLE_STARTUP_CLEANUP !== "false";
 const retentionDays = parseInt(process.env.CHAT_RETENTION_DAYS || "90", 10);
 
 if (enableStartupCleanup) {
-  const chatService = getChatService();
+  const conversationService = getConversationService();
   setImmediate(async () => {
     try {
       const deletedCount =
-        await chatService.cleanupOldConversations!(retentionDays);
+        await conversationService.cleanupOldConversations(retentionDays);
       if (deletedCount > 0) {
         logger.info(
           `Startup cleanup: Deleted ${deletedCount} conversations older than ${retentionDays} days`
@@ -179,7 +179,7 @@ app.post(
   "/api/conversations/cleanup",
   apiLimiter,
   asyncHandler(async (req, res) => {
-    await conversationController.cleanupOldConversations!(req, res);
+    await conversationController.cleanupOldConversations(req, res);
   })
 );
 

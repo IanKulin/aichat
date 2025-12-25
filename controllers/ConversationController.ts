@@ -1,7 +1,7 @@
 // controllers/ConversationController.ts - Conversation management controller
 
 import { type Request, type Response } from "express";
-import { ChatService } from "../services/ChatService.ts";
+import { ConversationService } from "../services/ConversationService.ts";
 import type { SaveMessageData } from "../repositories/ChatRepository.ts";
 
 interface CreateConversationRequest {
@@ -31,11 +31,11 @@ export abstract class ConversationController {
 }
 
 export class DefaultConversationController extends ConversationController {
-  private chatService: ChatService;
+  private conversationService: ConversationService;
 
-  constructor(chatService: ChatService) {
+  constructor(conversationService: ConversationService) {
     super();
-    this.chatService = chatService;
+    this.conversationService = conversationService;
   }
 
   async createConversation(req: Request, res: Response): Promise<void> {
@@ -46,7 +46,7 @@ export class DefaultConversationController extends ConversationController {
       return;
     }
 
-    const conversation = await this.chatService.createConversation!({ title: title.trim() });
+    const conversation = await this.conversationService.createConversation({ title: title.trim() });
     res.status(201).json(conversation);
   }
 
@@ -58,8 +58,8 @@ export class DefaultConversationController extends ConversationController {
       return;
     }
 
-    const conversation = await this.chatService.getConversation!(id);
-    
+    const conversation = await this.conversationService.getConversation(id);
+
     if (!conversation) {
       res.status(404).json({ error: "Conversation not found" });
       return;
@@ -82,7 +82,7 @@ export class DefaultConversationController extends ConversationController {
       return;
     }
 
-    const conversations = await this.chatService.listConversations!(limit, offset);
+    const conversations = await this.conversationService.listConversations(limit, offset);
     res.json({ conversations, limit, offset });
   }
 
@@ -101,7 +101,7 @@ export class DefaultConversationController extends ConversationController {
     }
 
     try {
-      await this.chatService.updateConversationTitle!(id, title.trim());
+      await this.conversationService.updateConversationTitle(id, title.trim());
       res.json({ success: true, message: "Conversation title updated successfully" });
     } catch (error) {
       if (error instanceof Error && error.message.includes("not found")) {
@@ -121,7 +121,7 @@ export class DefaultConversationController extends ConversationController {
     }
 
     try {
-      await this.chatService.deleteConversation!(id);
+      await this.conversationService.deleteConversation(id);
       res.json({ success: true, message: "Conversation deleted successfully" });
     } catch (error) {
       if (error instanceof Error && error.message.includes("not found")) {
@@ -150,7 +150,7 @@ export class DefaultConversationController extends ConversationController {
       return;
     }
 
-    await this.chatService.saveMessageToConversation!(messageData);
+    await this.conversationService.saveMessageToConversation(messageData);
     res.status(201).json({ success: true, message: "Message saved successfully" });
   }
 
@@ -164,7 +164,7 @@ export class DefaultConversationController extends ConversationController {
       return;
     }
 
-    const deletedCount = await this.chatService.cleanupOldConversations!(retentionDays);
+    const deletedCount = await this.conversationService.cleanupOldConversations(retentionDays);
     res.json({
       success: true,
       deletedCount,
@@ -196,7 +196,7 @@ export class DefaultConversationController extends ConversationController {
     }
 
     try {
-      const branchedConversation = await this.chatService.branchConversation!(
+      const branchedConversation = await this.conversationService.branchConversation(
         id,
         upToTimestamp,
         newTitle.trim()

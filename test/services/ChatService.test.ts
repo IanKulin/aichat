@@ -199,10 +199,20 @@ describe('ChatService Tests', () => {
     test('should be resolvable from DI container', async () => {
       await import('../../lib/services.ts') // Initialize DI container
       const service = container.resolve<DefaultChatService>('ChatService')
-      
+
       assert.ok(service)
       assert.ok(typeof service.processMessage === 'function')
       assert.ok(typeof service.streamMessage === 'function')
+
+      // Verify conversation methods are removed (moved to ConversationService)
+      assert.strictEqual((service as any).createConversation, undefined)
+      assert.strictEqual((service as any).getConversation, undefined)
+      assert.strictEqual((service as any).listConversations, undefined)
+      assert.strictEqual((service as any).updateConversationTitle, undefined)
+      assert.strictEqual((service as any).deleteConversation, undefined)
+      assert.strictEqual((service as any).saveMessageToConversation, undefined)
+      assert.strictEqual((service as any).cleanupOldConversations, undefined)
+      assert.strictEqual((service as any).branchConversation, undefined)
     })
   })
 })
