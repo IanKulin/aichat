@@ -132,9 +132,7 @@ export async function loadConversation(conversationId) {
       addBranchButtonsToMessages();
     }
 
-    // Update UI
     conversationTitle.textContent = conversation.title;
-    updateConversationListUI();
 
     hideConversationLoader();
   } catch (error) {
@@ -153,6 +151,7 @@ export async function updateConversationTitle(id, newTitle) {
       currentConversation.title = newTitle;
       conversationTitle.textContent = newTitle;
     }
+    // Refresh list to show updated title
     refreshConversationList();
   } catch (error) {
     console.error("Failed to update conversation title:", error);
@@ -235,7 +234,6 @@ export async function refreshConversationList() {
     const conversationAPI = getConversationAPI();
     const data = await conversationAPI.listConversations(50, 0);
     setConversationList(data.conversations || []);
-    updateConversationListUI();
   } catch (error) {
     console.error("Failed to refresh conversation list:", error);
   }

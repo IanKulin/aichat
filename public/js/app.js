@@ -19,7 +19,9 @@ import {
   autoSaveToggle,
   conversationSearch,
   conversationSidebar,
+  conversationTitle,
 } from "./state.js";
+import { stateObserver } from "./observer.js";
 import { showError, filterConversations } from "./ui/index.js";
 import { sendMessage } from "./chat.js";
 import {
@@ -149,6 +151,28 @@ function toggleSidebarCollapse() {
   localStorage.setItem("sidebarCollapsed", isCollapsed);
 }
 
+function setupStateObservers() {
+  // Subscribe to auto-save changes
+  stateObserver.subscribe("conversation:auto-save-changed", (data) => {
+    localStorage.setItem("autoSaveEnabled", data.current);
+  });
+
+  // Subscribe to current conversation changes
+  stateObserver.subscribe("conversation:current-changed", (data) => {
+    updateConversationListUI(); // Highlight active conversation
+    if (data.current) {
+      conversationTitle.textContent = data.current.title;
+    } else {
+      conversationTitle.textContent = "";
+    }
+  });
+
+  // Subscribe to conversation list changes
+  stateObserver.subscribe("conversation:list-changed", () => {
+    updateConversationListUI();
+  });
+}
+
 // Initialize app
 async function initializeApp() {
   try {
@@ -163,6 +187,9 @@ async function initializeApp() {
 
     // Setup event listeners
     setupEventListeners();
+
+    // Setup state observers
+    setupStateObservers();
 
     // Load settings and data
     loadSavedSettings();
@@ -249,7 +276,6 @@ function setupEventListeners() {
   // Auto-save toggle
   autoSaveToggle.addEventListener("change", (e) => {
     setAutoSaveEnabled(e.target.checked);
-    localStorage.setItem("autoSaveEnabled", e.target.checked);
   });
 
   // Conversation search

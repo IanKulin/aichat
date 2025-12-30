@@ -18,11 +18,7 @@ import {
   removeSkeletonMessage,
   addSkeletonMessage,
 } from "./ui/index.js";
-import {
-  createNewConversation,
-  generateAndSetTitle,
-  refreshConversationList,
-} from "./conversations.js";
+import { createNewConversation, generateAndSetTitle } from "./conversations.js";
 
 export function setLoading(isLoading) {
   sendButton.disabled = isLoading;
@@ -145,10 +141,6 @@ export async function sendMessage() {
         await generateAndSetTitle(firstUserMessage);
       }
 
-      // Update conversation list (conversation was modified)
-      if (finalCurrentConv) {
-        refreshConversationList();
-      }
     } else {
       throw new Error("No response received from server");
     }

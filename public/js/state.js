@@ -1,4 +1,5 @@
 // Application state management
+import { stateObserver } from "./observer.js";
 
 // Conversation state
 let _currentConversation = null;
@@ -41,27 +42,69 @@ export const getConversationAPI = () => _conversationAPI;
 
 // State setters
 export function setCurrentConversation(value) {
+  const oldValue = _currentConversation;
   _currentConversation = value;
+
+  // Notify subscribers
+  stateObserver.notify("conversation:current-changed", {
+    current: value,
+    previous: oldValue,
+  });
 }
 
 export function setConversationList(value) {
+  const oldValue = _conversationList;
   _conversationList = value;
+
+  // Notify subscribers
+  stateObserver.notify("conversation:list-changed", {
+    current: value,
+    previous: oldValue,
+  });
 }
 
 export function setAutoSaveEnabled(value) {
+  const oldValue = _autoSaveEnabled;
   _autoSaveEnabled = value;
+
+  // Notify subscribers
+  stateObserver.notify("conversation:auto-save-changed", {
+    current: value,
+    previous: oldValue,
+  });
 }
 
 export function setConversationHistory(value) {
+  const oldValue = _conversationHistory;
   _conversationHistory = value;
+
+  // Notify subscribers
+  stateObserver.notify("conversation:history-changed", {
+    current: value,
+    previous: oldValue,
+  });
 }
 
 export function addToConversationHistory(message) {
   _conversationHistory.push(message);
+
+  // Notify subscribers
+  stateObserver.notify("conversation:history-changed", {
+    current: _conversationHistory,
+    previous: _conversationHistory,
+  });
 }
 
 export function popFromConversationHistory() {
-  return _conversationHistory.pop();
+  const message = _conversationHistory.pop();
+
+  // Notify subscribers
+  stateObserver.notify("conversation:history-changed", {
+    current: _conversationHistory,
+    previous: _conversationHistory,
+  });
+
+  return message;
 }
 
 export function setAvailableProviders(value) {
