@@ -45,7 +45,7 @@ export abstract class ConversationController {
   abstract updateConversationTitle(req: Request, res: Response): Promise<void>;
   abstract deleteConversation(req: Request, res: Response): Promise<void>;
   abstract saveMessage(req: Request, res: Response): Promise<void>;
-  abstract cleanupOldConversations?(req: Request, res: Response): Promise<void>;
+  abstract cleanupOldConversations(req: Request, res: Response): Promise<void>;
   abstract branchConversation(req: Request, res: Response): Promise<void>;
 }
 
