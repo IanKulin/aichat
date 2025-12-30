@@ -51,36 +51,19 @@ class SettingsAPI {
 class SettingsUI {
   constructor(api) {
     this.api = api;
-    this.providers = [];
-    this.providerNames = {};
+    // Hardcoded provider names - these never change
+    this.providerNames = {
+      openai: "OpenAI",
+      anthropic: "Anthropic",
+      google: "Google",
+      deepseek: "DeepSeek",
+      openrouter: "OpenRouter",
+    };
+    this.providers = Object.keys(this.providerNames);
   }
 
   async init() {
-    await this.loadProviderMetadata();
     await this.loadApiKeys();
-  }
-
-  async loadProviderMetadata() {
-    try {
-      const response = await fetch("/api/providers");
-      if (!response.ok) {
-        throw new Error(`Failed to load provider metadata: ${response.status}`);
-      }
-
-      const providersData = await response.json();
-
-      // Extract provider IDs and names
-      this.providers = providersData.providers.map((p) => p.id);
-      this.providerNames = {};
-      providersData.providers.forEach((p) => {
-        this.providerNames[p.id] = p.name;
-      });
-    } catch (error) {
-      console.error("Failed to load provider metadata:", error);
-      showError(
-        "Failed to load provider information. Please refresh the page."
-      );
-    }
   }
 
   async loadApiKeys() {
