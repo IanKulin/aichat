@@ -2,7 +2,7 @@
 
 import { type Request, type Response } from "express";
 import type { SettingsService } from "../types/services.ts";
-import { isValidProvider } from "../lib/provider-constants.ts";
+import type { SupportedProvider } from "../types/index.ts";
 import { SettingsController } from "../types/controllers.ts";
 
 export { SettingsController };
@@ -23,35 +23,17 @@ export class DefaultSettingsController extends SettingsController {
   async setApiKey(req: Request, res: Response): Promise<void> {
     const { provider, key } = req.body;
 
-    if (!provider || !key) {
-      res.status(400).json({ error: "Provider and key are required" });
-      return;
-    }
-
-    // Validate provider is supported
-    if (!isValidProvider(provider)) {
-      res.status(400).json({
-        error: "Invalid provider",
-      });
-      return;
-    }
-
-    const validation = await this.settingsService.setApiKey(provider, key);
+    const validation = await this.settingsService.setApiKey(
+      provider as SupportedProvider,
+      key
+    );
     res.json(validation);
   }
 
   async deleteApiKey(req: Request, res: Response): Promise<void> {
     const { provider } = req.params;
 
-    // Validate provider is supported
-    if (!isValidProvider(provider)) {
-      res.status(400).json({
-        error: "Invalid provider",
-      });
-      return;
-    }
-
-    await this.settingsService.deleteApiKey(provider);
+    await this.settingsService.deleteApiKey(provider as SupportedProvider);
     res.json({ success: true });
   }
 }

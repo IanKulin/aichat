@@ -70,11 +70,6 @@ export class DefaultChatController extends ChatController {
   async generateTitle(req: Request, res: Response): Promise<void> {
     const { firstMessage, provider, model } = req.body;
 
-    if (!firstMessage) {
-      res.status(400).json({ error: "First message is required" });
-      return;
-    }
-
     // Default provider selection
     const selectedProvider = provider || "openai";
 

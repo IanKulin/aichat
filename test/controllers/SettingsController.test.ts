@@ -139,42 +139,8 @@ describe("SettingsController Tests", () => {
       assert.ok(res.jsonData.message.includes("validated successfully"));
     });
 
-    it("should return 400 when provider is missing", async () => {
-      const req = createMockRequest({
-        key: "sk-test-123456789012",
-      });
-      const res = new MockResponse();
-
-      await controller.setApiKey(req, res as unknown as Response);
-
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(res.jsonData.error, "Provider and key are required");
-    });
-
-    it("should return 400 when key is missing", async () => {
-      const req = createMockRequest({
-        provider: "openai",
-      });
-      const res = new MockResponse();
-
-      await controller.setApiKey(req, res as unknown as Response);
-
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(res.jsonData.error, "Provider and key are required");
-    });
-
-    it("should return 400 for invalid provider", async () => {
-      const req = createMockRequest({
-        provider: "invalid-provider",
-        key: "sk-test-123456789012",
-      });
-      const res = new MockResponse();
-
-      await controller.setApiKey(req, res as unknown as Response);
-
-      assert.strictEqual(res.statusCode, 400);
-      assert.ok(res.jsonData.error.includes("Invalid provider"));
-    });
+    // Note: Validation tests removed - validation is now handled by middleware
+    // See test/middleware/validators/settings.test.ts for validation tests
 
     it("should accept all supported providers", async () => {
       const providers: SupportedProvider[] = [
@@ -216,15 +182,8 @@ describe("SettingsController Tests", () => {
       assert.strictEqual(res.jsonData.success, true);
     });
 
-    it("should return 400 for invalid provider", async () => {
-      const req = createMockRequest({}, { provider: "invalid-provider" });
-      const res = new MockResponse();
-
-      await controller.deleteApiKey(req, res as unknown as Response);
-
-      assert.strictEqual(res.statusCode, 400);
-      assert.ok(res.jsonData.error.includes("Invalid provider"));
-    });
+    // Note: Validation tests removed - validation is now handled by middleware
+    // See test/middleware/validators/settings.test.ts for validation tests
 
     it("should accept all supported providers for deletion", async () => {
       const providers: SupportedProvider[] = [

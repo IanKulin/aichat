@@ -29,26 +29,14 @@ export class DefaultConversationController extends ConversationController {
   async createConversation(req: Request, res: Response): Promise<void> {
     const { title }: CreateConversationRequest = req.body;
 
-    if (!title || typeof title !== "string" || title.trim().length === 0) {
-      res
-        .status(400)
-        .json({ error: "Title is required and must be a non-empty string" });
-      return;
-    }
-
     const conversation = await this.conversationService.createConversation({
-      title: title.trim(),
+      title,
     });
     res.status(201).json(conversation);
   }
 
   async getConversation(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-
-    if (!id || typeof id !== "string") {
-      res.status(400).json({ error: "Conversation ID is required" });
-      return;
-    }
 
     const conversation = await this.conversationService.getConversation(id);
 
@@ -61,24 +49,8 @@ export class DefaultConversationController extends ConversationController {
   }
 
   async listConversations(req: Request, res: Response): Promise<void> {
-    const limit = req.query.limit
-      ? parseInt(req.query.limit as string, 10)
-      : 50;
-    const offset = req.query.offset
-      ? parseInt(req.query.offset as string, 10)
-      : 0;
-
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      res
-        .status(400)
-        .json({ error: "Limit must be a number between 1 and 100" });
-      return;
-    }
-
-    if (isNaN(offset) || offset < 0) {
-      res.status(400).json({ error: "Offset must be a non-negative number" });
-      return;
-    }
+    const limit = parseInt(req.query.limit as string, 10);
+    const offset = parseInt(req.query.offset as string, 10);
 
     const conversations = await this.conversationService.listConversations(
       limit,
@@ -91,20 +63,8 @@ export class DefaultConversationController extends ConversationController {
     const { id } = req.params;
     const { title }: UpdateConversationTitleRequest = req.body;
 
-    if (!id || typeof id !== "string") {
-      res.status(400).json({ error: "Conversation ID is required" });
-      return;
-    }
-
-    if (!title || typeof title !== "string" || title.trim().length === 0) {
-      res
-        .status(400)
-        .json({ error: "Title is required and must be a non-empty string" });
-      return;
-    }
-
     try {
-      await this.conversationService.updateConversationTitle(id, title.trim());
+      await this.conversationService.updateConversationTitle(id, title);
       res.json({
         success: true,
         message: "Conversation title updated successfully",
@@ -121,11 +81,6 @@ export class DefaultConversationController extends ConversationController {
   async deleteConversation(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
-    if (!id || typeof id !== "string") {
-      res.status(400).json({ error: "Conversation ID is required" });
-      return;
-    }
-
     try {
       await this.conversationService.deleteConversation(id);
       res.json({ success: true, message: "Conversation deleted successfully" });
@@ -141,35 +96,6 @@ export class DefaultConversationController extends ConversationController {
   async saveMessage(req: Request, res: Response): Promise<void> {
     const messageData: SaveMessageRequest = req.body;
 
-    if (
-      !messageData.conversationId ||
-      typeof messageData.conversationId !== "string"
-    ) {
-      res.status(400).json({ error: "Conversation ID is required" });
-      return;
-    }
-
-    if (
-      !messageData.role ||
-      !["user", "assistant", "system"].includes(messageData.role)
-    ) {
-      res
-        .status(400)
-        .json({ error: "Valid role is required (user, assistant, or system)" });
-      return;
-    }
-
-    if (
-      !messageData.content ||
-      typeof messageData.content !== "string" ||
-      messageData.content.trim().length === 0
-    ) {
-      res
-        .status(400)
-        .json({ error: "Content is required and must be a non-empty string" });
-      return;
-    }
-
     await this.conversationService.saveMessageToConversation(messageData);
     res
       .status(201)
@@ -177,16 +103,7 @@ export class DefaultConversationController extends ConversationController {
   }
 
   async cleanupOldConversations(req: Request, res: Response): Promise<void> {
-    const retentionDays = req.query.days
-      ? parseInt(req.query.days as string, 10)
-      : parseInt(process.env.CHAT_RETENTION_DAYS || "90", 10);
-
-    if (isNaN(retentionDays) || retentionDays < 1) {
-      res
-        .status(400)
-        .json({ error: "Retention days must be a positive number" });
-      return;
-    }
+    const retentionDays = parseInt(req.query.days as string, 10);
 
     const deletedCount =
       await this.conversationService.cleanupOldConversations(retentionDays);
@@ -202,38 +119,12 @@ export class DefaultConversationController extends ConversationController {
     const { id } = req.params;
     const { upToTimestamp, newTitle }: BranchConversationRequest = req.body;
 
-    // Validate conversation ID
-    if (!id || typeof id !== "string") {
-      res.status(400).json({ error: "Conversation ID is required" });
-      return;
-    }
-
-    // Validate upToTimestamp
-    if (typeof upToTimestamp !== "number" || upToTimestamp <= 0) {
-      res
-        .status(400)
-        .json({ error: "upToTimestamp must be a positive number" });
-      return;
-    }
-
-    // Validate newTitle
-    if (
-      !newTitle ||
-      typeof newTitle !== "string" ||
-      newTitle.trim().length === 0
-    ) {
-      res
-        .status(400)
-        .json({ error: "newTitle is required and must be a non-empty string" });
-      return;
-    }
-
     try {
       const branchedConversation =
         await this.conversationService.branchConversation(
           id,
           upToTimestamp,
-          newTitle.trim()
+          newTitle
         );
       res.status(201).json(branchedConversation);
     } catch (error) {

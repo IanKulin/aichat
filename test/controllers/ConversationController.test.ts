@@ -7,6 +7,14 @@ import express from "express";
 import { DefaultConversationController } from "../../controllers/ConversationController.ts";
 import type { ConversationService } from "../../services/ConversationService.ts";
 import { asyncHandler } from "../../middleware/error-handler.ts";
+import {
+  validateCreateConversation,
+  validateGetConversation,
+  validateListConversations,
+  validateUpdateConversationTitle,
+  validateDeleteConversation,
+  validateSaveMessage,
+} from "../../middleware/validators/conversation.ts";
 
 // Mock ConversationService implementation
 class MockConversationService implements ConversationService {
@@ -118,9 +126,10 @@ describe("ConversationController Tests", () => {
     app = express();
     app.use(express.json());
 
-    // Setup routes
+    // Setup routes with validation middleware
     app.post(
       "/api/conversations",
+      validateCreateConversation,
       asyncHandler(async (req, res) => {
         await controller.createConversation(req, res);
       })
@@ -128,6 +137,7 @@ describe("ConversationController Tests", () => {
 
     app.get(
       "/api/conversations",
+      validateListConversations,
       asyncHandler(async (req, res) => {
         await controller.listConversations(req, res);
       })
@@ -135,6 +145,7 @@ describe("ConversationController Tests", () => {
 
     app.get(
       "/api/conversations/:id",
+      validateGetConversation,
       asyncHandler(async (req, res) => {
         await controller.getConversation(req, res);
       })
@@ -142,6 +153,7 @@ describe("ConversationController Tests", () => {
 
     app.put(
       "/api/conversations/:id/title",
+      validateUpdateConversationTitle,
       asyncHandler(async (req, res) => {
         await controller.updateConversationTitle(req, res);
       })
@@ -149,6 +161,7 @@ describe("ConversationController Tests", () => {
 
     app.delete(
       "/api/conversations/:id",
+      validateDeleteConversation,
       asyncHandler(async (req, res) => {
         await controller.deleteConversation(req, res);
       })
@@ -156,6 +169,7 @@ describe("ConversationController Tests", () => {
 
     app.post(
       "/api/conversations/messages",
+      validateSaveMessage,
       asyncHandler(async (req, res) => {
         await controller.saveMessage(req, res);
       })
@@ -181,7 +195,7 @@ describe("ConversationController Tests", () => {
         .send({ title: "" })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Title is required"));
+      assert.ok(response.body.message.includes("Title"));
     });
 
     it("should reject missing title", async () => {
@@ -190,7 +204,7 @@ describe("ConversationController Tests", () => {
         .send({})
         .expect(400);
 
-      assert.ok(response.body.error.includes("Title is required"));
+      assert.ok(response.body.message.includes("Title"));
     });
 
     it("should reject non-string title", async () => {
@@ -199,7 +213,7 @@ describe("ConversationController Tests", () => {
         .send({ title: 123 })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Title is required"));
+      assert.ok(response.body.message.includes("Title"));
     });
 
     it("should trim whitespace from title", async () => {
@@ -262,7 +276,7 @@ describe("ConversationController Tests", () => {
         .get("/api/conversations?limit=abc")
         .expect(400);
 
-      assert.ok(response.body.error.includes("Limit must be a number"));
+      assert.ok(response.body.message.includes("Limit"));
     });
 
     it("should reject limit over 100", async () => {
@@ -270,9 +284,7 @@ describe("ConversationController Tests", () => {
         .get("/api/conversations?limit=150")
         .expect(400);
 
-      assert.ok(
-        response.body.error.includes("Limit must be a number between 1 and 100")
-      );
+      assert.ok(response.body.message.includes("Limit"));
     });
 
     it("should reject negative offset", async () => {
@@ -280,9 +292,7 @@ describe("ConversationController Tests", () => {
         .get("/api/conversations?offset=-1")
         .expect(400);
 
-      assert.ok(
-        response.body.error.includes("Offset must be a non-negative number")
-      );
+      assert.ok(response.body.message.includes("Offset"));
     });
   });
 
@@ -350,7 +360,7 @@ describe("ConversationController Tests", () => {
         .send({ title: "" })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Title is required"));
+      assert.ok(response.body.message.includes("Title"));
     });
 
     it("should trim whitespace from title", async () => {
@@ -451,7 +461,7 @@ describe("ConversationController Tests", () => {
         })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Conversation ID is required"));
+      assert.ok(response.body.message.includes("Conversation ID"));
     });
 
     it("should reject invalid role", async () => {
@@ -464,7 +474,7 @@ describe("ConversationController Tests", () => {
         })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Valid role is required"));
+      assert.ok(response.body.message.includes("role"));
     });
 
     it("should reject empty content", async () => {
@@ -477,7 +487,7 @@ describe("ConversationController Tests", () => {
         })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Content is required"));
+      assert.ok(response.body.message.includes("Content"));
     });
 
     it("should reject missing content", async () => {
@@ -489,7 +499,7 @@ describe("ConversationController Tests", () => {
         })
         .expect(400);
 
-      assert.ok(response.body.error.includes("Content is required"));
+      assert.ok(response.body.message.includes("Content"));
     });
 
     it("should accept all valid roles", async () => {
@@ -526,7 +536,7 @@ describe("ConversationController Tests", () => {
         .post("/api/conversations")
         .expect(400);
 
-      assert.ok(response.body.error.includes("Title is required"));
+      assert.ok(response.body.message.includes("Title"));
     });
 
     it("should handle service errors gracefully", async () => {

@@ -6,7 +6,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "node --experimental-strip-types server.ts",
-    "test": "NODE_ENV=test node --experimental-strip-types --test test/*.test.ts",
+    "test": "NODE_ENV=test node --experimental-strip-types --test test/*.test.ts test/middleware/**/*.test.ts",
     "lint": "npx eslint . --fix --max-warnings 0",
     "format": "npx prettier \"**/*.{ts,js,json}\" --ignore-unknown --write",
     "typecheck": "npx tsc --noEmit",

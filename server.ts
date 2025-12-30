@@ -13,10 +13,25 @@ import {
   getSettingsController,
 } from "./lib/services.ts";
 import { errorHandler, asyncHandler } from "./middleware/error-handler.ts";
+import { validateJsonBody } from "./middleware/validation.ts";
 import {
   validateChatRequest,
-  validateJsonBody,
-} from "./middleware/validation.ts";
+  validateGenerateTitleRequest,
+} from "./middleware/validators/chat.ts";
+import {
+  validateCreateConversation,
+  validateGetConversation,
+  validateListConversations,
+  validateUpdateConversationTitle,
+  validateDeleteConversation,
+  validateSaveMessage,
+  validateBranchConversation,
+  validateCleanupConversations,
+} from "./middleware/validators/conversation.ts";
+import {
+  validateSetApiKey,
+  validateDeleteApiKey,
+} from "./middleware/validators/settings.ts";
 import { requestLogger, chatLogger } from "./middleware/logging.ts";
 import {
   chatLimiter,
@@ -103,6 +118,7 @@ app.post(
 app.post(
   "/api/generate-title",
   chatLimiter,
+  validateGenerateTitleRequest,
   asyncHandler(async (req, res) => {
     await chatController.generateTitle(req, res);
   })
@@ -122,6 +138,7 @@ app.get("/api/health", healthLimiter, (req, res) => {
 app.post(
   "/api/conversations",
   apiLimiter,
+  validateCreateConversation,
   asyncHandler(async (req, res) => {
     await conversationController.createConversation(req, res);
   })
@@ -130,6 +147,7 @@ app.post(
 app.get(
   "/api/conversations",
   apiLimiter,
+  validateListConversations,
   asyncHandler(async (req, res) => {
     await conversationController.listConversations(req, res);
   })
@@ -138,6 +156,7 @@ app.get(
 app.get(
   "/api/conversations/:id",
   apiLimiter,
+  validateGetConversation,
   asyncHandler(async (req, res) => {
     await conversationController.getConversation(req, res);
   })
@@ -146,6 +165,7 @@ app.get(
 app.put(
   "/api/conversations/:id/title",
   apiLimiter,
+  validateUpdateConversationTitle,
   asyncHandler(async (req, res) => {
     await conversationController.updateConversationTitle(req, res);
   })
@@ -154,6 +174,7 @@ app.put(
 app.delete(
   "/api/conversations/:id",
   apiLimiter,
+  validateDeleteConversation,
   asyncHandler(async (req, res) => {
     await conversationController.deleteConversation(req, res);
   })
@@ -162,6 +183,7 @@ app.delete(
 app.post(
   "/api/conversations/:id/branch",
   apiLimiter,
+  validateBranchConversation,
   asyncHandler(async (req, res) => {
     await conversationController.branchConversation(req, res);
   })
@@ -170,6 +192,7 @@ app.post(
 app.post(
   "/api/conversations/messages",
   apiLimiter,
+  validateSaveMessage,
   asyncHandler(async (req, res) => {
     await conversationController.saveMessage(req, res);
   })
@@ -178,6 +201,7 @@ app.post(
 app.post(
   "/api/conversations/cleanup",
   apiLimiter,
+  validateCleanupConversations,
   asyncHandler(async (req, res) => {
     await conversationController.cleanupOldConversations(req, res);
   })
@@ -195,6 +219,7 @@ app.get(
 app.post(
   "/api/settings/keys",
   apiLimiter,
+  validateSetApiKey,
   asyncHandler(async (req, res) => {
     await settingsController.setApiKey(req, res);
   })
@@ -203,6 +228,7 @@ app.post(
 app.delete(
   "/api/settings/keys/:provider",
   apiLimiter,
+  validateDeleteApiKey,
   asyncHandler(async (req, res) => {
     await settingsController.deleteApiKey(req, res);
   })

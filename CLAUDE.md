@@ -78,6 +78,12 @@ The frontend is a single HTML page with modular JavaScript architecture:
 - `services/`: Business logic with dependency injection
 - `repositories/`: Data access layer for configuration and providers
 - `middleware/`: Cross-cutting concerns (error handling, validation, logging, rate limiting)
+  - `validation.ts`: Core validation utilities and JSON body validation
+  - `validators/`: Endpoint-specific validation middleware
+    - `common.ts`: Reusable validation helper functions
+    - `chat.ts`: Chat request validators
+    - `conversation.ts`: Conversation management validators
+    - `settings.ts`: Settings endpoint validators
 - `lib/ai-client.ts`: AI SDK client with multi-provider support and API key validation
 - `lib/container.ts`: Dependency injection container
 - `lib/database.ts`: SQLite database connection and initialization
@@ -96,6 +102,38 @@ The frontend is a single HTML page with modular JavaScript architecture:
 - `data/db/chat.db`: SQLite database for conversation persistence
 
 ## Middleware
+
+### Validation Architecture
+
+The application uses a middleware-first validation approach where all request validation happens before reaching controllers:
+
+**Validation Structure:**
+- **Common Helpers** (`middleware/validators/common.ts`): Reusable validation functions
+  - `validateRequiredString`: Validates and trims non-empty strings
+  - `validatePositiveNumber`: Ensures positive numbers
+  - `validateNonNegativeNumber`: Ensures non-negative numbers
+  - `validateNumberRange`: Validates numbers within a range
+  - `validateRole`: Validates message roles (user/assistant/system)
+  - `validateId`: Validates string IDs
+  - `validateMessages`: Validates chat message arrays
+
+- **Endpoint Validators** (`middleware/validators/`): Endpoint-specific middleware
+  - `chat.ts`: Validates chat requests and title generation
+  - `conversation.ts`: Validates conversation management operations
+  - `settings.ts`: Validates API key operations
+
+**Pattern:**
+1. Validation middleware is applied to routes in `server.ts`
+2. Middleware validates and normalizes request data (trimming strings, parsing numbers)
+3. On validation error, middleware returns 400 response with error details
+4. On success, middleware calls `next()` and controller receives validated data
+5. Controllers contain only business logic, no validation
+
+**Adding New Validators:**
+1. Create reusable helpers in `common.ts` if needed
+2. Create endpoint-specific validator in appropriate file
+3. Add validator to route definition in `server.ts`
+4. Controller can trust all input is validated
 
 ### Rate Limiting
 
